@@ -7,6 +7,7 @@ Edge-AG: Robust Offline Disease Inference Engine
 This project implements a specialized inference engine optimized for resource-constrained edge devices (e.g., Raspberry Pi). Unlike standard computer vision demos, this system addresses the specific challenges of real-world deployment: thermal throttling under direct sunlight, transient environmental noise (wind/glare), and the need for autonomous, unattended operation.
 
 It prioritizes System Stability and False Positive Suppression over raw benchmark metrics, making it suitable for actionable agricultural intervention.
+
 🚀 Key Engineering Features
 1. Air-Gapped Autonomy
 
