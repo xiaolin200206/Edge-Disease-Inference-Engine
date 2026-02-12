@@ -1,77 +1,71 @@
-# Edge Disease Inference Engine
+Edge-AG: Robust Offline Disease Inference Engine
 
-A fully offline edge inference system designed for long-term agricultural
-disease monitoring on resource-constrained devices such as Raspberry Pi.
+    A fault-tolerant, fully offline edge inference system designed for long-term agricultural monitoring in unstructured field environments.
 
-This project prioritizes **system stability, thermal safety, and low false
-positive rates** over benchmark accuracy.
+📖 Project Abstract
 
----
+This project implements a specialized inference engine optimized for resource-constrained edge devices (e.g., Raspberry Pi). Unlike standard computer vision demos, this system addresses the specific challenges of real-world deployment: thermal throttling under direct sunlight, transient environmental noise (wind/glare), and the need for autonomous, unattended operation.
 
-## Key Characteristics
+It prioritizes System Stability and False Positive Suppression over raw benchmark metrics, making it suitable for actionable agricultural intervention.
+🚀 Key Engineering Features
+1. Air-Gapped Autonomy
 
-- Fully offline inference (no cloud dependency)
-- Thermal-aware cyclic scheduling
-- Class-specific confidence thresholds
-- Temporal confirmation to suppress noise
-- Designed for continuous, unattended operation
+    Fully Offline: No cloud dependencies or API calls. All inference and logging happen locally on the edge, ensuring functionality in remote farms with zero connectivity.
 
----
+2. Thermal-Aware Scheduling
 
-## Architecture Overview
+    Active Duty-Cycling: Implements a strict 30s ON / 30s OFF logic to manage the thermal envelope of the Raspberry Pi 5 without heavy active cooling.
 
-1. Camera captures fixed-view frames
-2. YOLO-based object detector runs locally
-3. Post-processing applies:
-   - class merging
-   - class-specific thresholds
-   - temporal confirmation
-4. Confirmed detections are logged locally
-5. System telemetry is continuously monitored
+    Safety Cutoff: Automatic inference suspension if CPU core temperature exceeds 82°C, preventing hardware damage.
 
----
+3. Noise-Resistant Inference Logic
 
-## Thermal Management
+    Temporal Confirmation: A disease is only "confirmed" if detected consistently across N consecutive frames. This filters out transient false positives caused by motion blur or camera shake.
 
-Inference runs in a fixed duty cycle (e.g. 30s ON / 30s OFF) to prevent
-thermal throttling under high ambient temperatures.
+    Class-Specific Thresholding: abandons a "one-size-fits-all" confidence threshold in favor of dynamic thresholds (e.g., stricter for confusion-prone classes like Algal Spot, lenient for necrotic lesions).
+   
+🛠️ System Architecture
+graph TD
+    A[Camera Input] --> B{Thermal Check}
+    B -- Safe (<82°C) --> C[YOLOv8 Inference]
+    B -- Overheat --> D[Cooling Sleep Mode]
+    C --> E[Post-Processing]
+    E --> F[Class-Specific Thresholds]
+    F --> G[Temporal Confirmation Buffer]
+    G -- Confirmed --> H[Local CSV Logging]
+    G -- Transient Noise --> I[Discard]
 
-If CPU temperature exceeds the safety limit, inference is automatically paused.
+🧠 Advanced Post-Processing Logic
+Class-Specific Sensitivity (The "Double Standard" Strategy)
 
----
+Standard models often struggle with environmental artifacts (e.g., sunlight glare resembling white fungal spots). This engine applies tailored logic:
 
-## Post-processing Logic
+    High-Confidence Classes (e.g., Algal Leaf Spot): Requires conf > 0.65 to suppress glare-induced false positives.
 
-### Class Merging
-Visually similar disease classes are merged at inference time to reduce
-semantic ambiguity on lightweight models.
+    Low-Contrast Classes (e.g., Anthracnose): Accepts conf > 0.35 to ensure recall of subtle necrotic features in shadowed regions.
 
-### Class-Specific Thresholds
-Each disease category uses a tailored confidence threshold to minimize
-false positives and prevent unnecessary chemical intervention.
+Temporal Consistency Check
 
-### Temporal Confirmation
-A disease is only confirmed after appearing consistently across multiple
-consecutive frames, suppressing transient noise caused by wind or motion blur.
+To combat "flickering" detections caused by wind blowing through leaves:
+IF detection_count_in_buffer >= CONFIRMATION_FRAMES (e.g., 3):
+    Log "Confirmed Disease"
+ELSE:
+    Treat as "Environmental Noise"
 
----
+📊 Telemetry & Logging
+The system maintains a rigorous audit trail for post-mission analysis. All data is saved to cycle_events.csv and data_for_thesis.csv.
+Data Point,Description
+Inference Latency,Time taken (ms) for model forward pass + NMS.
+Thermal Status,Real-time CPU temperature and throttling flags.
+Resource Usage,CPU Load (%) and RAM utilization.
+Detection Result,Bounding box coordinates and confidence scores after filtering.
 
-## Logging
+⚠️ Disclaimer & Usage Note
 
-The system records:
-- Inference latency
-- Frame rate
-- CPU usage and temperature
-- Thermal throttling events
-- Detection results
+Proprietary Assets: The trained YOLO weights (.pt/.onnx) and the proprietary Durian dataset are not included in this repository due to IP restrictions.
 
-All logs are stored locally in CSV format.
+Scope: This codebase serves as the deployment framework. Users must provide their own trained object detection models.
 
----
+👨‍💻 Author
 
-## Disclaimer
-
-Trained models and proprietary datasets are not included in this repository.
-
-This project is intended for research, engineering evaluation, and controlled
-field deployment only.
+Lin Ding Shan Edge AI Engineer | Agricultural Robotics Researcher
