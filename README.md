@@ -54,12 +54,13 @@ ELSE:
     Treat as "Environmental Noise"
 
 📊 Telemetry & Logging
-The system maintains a rigorous audit trail for post-mission analysis. All data is saved to cycle_events.csv and data_for_thesis.csv.
-Data Point,Description
-Inference Latency,Time taken (ms) for model forward pass + NMS.
-Thermal Status,Real-time CPU temperature and throttling flags.
-Resource Usage,CPU Load (%) and RAM utilization.
-Detection Result,Bounding box coordinates and confidence scores after filtering.
+
+The system maintains a rigorous audit trail for post-mission analysis. All data is saved to `cycle_events.csv` and `data_for_thesis.csv`.
+
+⏱️ Inference Latency:** Time taken (ms) for model forward pass + Non-Maximum Suppression (NMS).
+🌡️ Thermal Status:** Real-time CPU core temperature and hardware throttling flags.
+💻 Resource Usage:** System-wide CPU Load (%) and RAM utilization.
+🎯 Detection Result:** Filtered bounding box coordinates and confidence scores (Post-NMS).
 
 ⚠️ Disclaimer & Usage Note
 
