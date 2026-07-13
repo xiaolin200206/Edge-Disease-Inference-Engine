@@ -2,7 +2,8 @@
 
 Code, telemetry, and audit tools accompanying the manuscript:
 
-> **From Bench to Mud: A Failure-Driven Engineering Analysis of Edge-Based Durian Disease Detection, with a Dataset Integrity Audit and Duty-Cycle Thermal Characterization**
+> **Thermal Cut-off, Not Throttling: Duty-Cycle Scheduling and a
+Dataset-Integrity Audit for Edge-Based Durian Disease Detection**
 > Lin Ding Shan, under review, *Computers and Electronics in Agriculture*, 2026.
 
 This repository contains (1) the offline field-deployment inference engine, (2) the dataset-integrity audit used to detect and quantify a train/validation data leak, and (3) scripts and telemetry that reproduce every table in the paper from raw data. The durian image dataset and trained model weights are **proprietary assets of an ongoing commercialization effort and are not released**; everything required to reproduce the reported *analyses* is provided.
