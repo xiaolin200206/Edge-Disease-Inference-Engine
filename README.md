@@ -103,10 +103,9 @@ python reproduce/train_yolov11s_paper2.py         # YOLOv11s on the whole-leaf d
 ## Citation
 
 ```
-L. D. Shan, "From Bench to Mud: A Failure-Driven Engineering Analysis of
-Edge-Based Durian Disease Detection, with a Dataset Integrity Audit and
-Duty-Cycle Thermal Characterization," under review, Computers and
-Electronics in Agriculture, 2026.
+L. D. Shan, "Thermal Cut-off, Not Throttling: Duty-Cycle Scheduling and a
+Dataset-Integrity Audit for Edge-Based Durian Disease Detection," under
+review, Computers and Electronics in Agriculture, 2026.
 ```
 
 ## License
