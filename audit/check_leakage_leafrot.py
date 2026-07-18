@@ -111,12 +111,18 @@ def check_leakage(train_imgs, val_imgs, thresh=10):
     else:
         print(f"\n✓ 无感知近似重复(阈值<{thresh})。")
 
+    # The paper's data-availability statement undertakes to identify the
+    # implicated pairs BY HASH, so that the leak can be checked without the
+    # images. Filenames alone do not satisfy that, so both hashes are emitted.
     with open('leakage_report.csv', 'w') as f:
-        f.write("type,val_image,train_image,hamming_distance\n")
+        f.write("type,val_image,train_image,hamming_distance,"
+                "val_md5,train_md5,val_phash,train_phash\n")
         for v, t in exact:
-            f.write(f"exact,{os.path.basename(v)},{os.path.basename(t)},0\n")
+            f.write(f"exact,{os.path.basename(v)},{os.path.basename(t)},0,"
+                    f"{md5(v)},{md5(t)},{phash(v)},{phash(t)}\n")
         for v, t, d in near:
-            f.write(f"near,{os.path.basename(v)},{os.path.basename(t)},{d}\n")
+            f.write(f"near,{os.path.basename(v)},{os.path.basename(t)},{d},"
+                    f"{md5(v)},{md5(t)},{phash(v)},{phash(t)}\n")
     print("\n→ 明细已写入 leakage_report.csv")
     return exact, near
 

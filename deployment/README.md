@@ -6,7 +6,7 @@ model on a Raspberry Pi 5 with:
 
 - **Cyclic duty-cycling for thermal protection** — `CYCLE_ACTIVE_SEC = 30`,
   `CYCLE_SLEEP_SEC = 30` (30 s on / 30 s off, ~50% duty). This is the
-  deployment default; Table 4 of the paper characterizes the wider
+  deployment default; Table 3 of the paper characterises the wider
   duty-cycle design space (60 s active, sleep swept 0-60 s) that motivates
   operating below the thermal limit.
 - **Hard thermal cutoff** — inference suspends if CPU core temperature

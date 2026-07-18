@@ -1,4 +1,4 @@
-# Duty-cycle thermal telemetry (Table 4)
+# Duty-cycle thermal telemetry (Table 3)
 
 Five three-hour benchmarks on a passively-cooled Raspberry Pi 5, indoor
 ambient ~28 C, active window fixed at 60 s, sleep interval swept:
@@ -16,8 +16,8 @@ Latency_ms, FPS, CPU_Usage_%, RAM_Usage_%, CPU_Temp_C, Throttled,
 Confidence_Max, Detection_Result) and `<group>_events.csv` (state
 transitions and THERMAL_CUTOFF events).
 
-Every value in Table 4 of the paper is recomputed from these logs by
-`reproduce/reproduce_table4.py`. The `Throttled` column reports the
+Every value in Table 3 of the paper is recomputed from these logs by
+`reproduce/reproduce_table3.py`. The `Throttled` column reports the
 Raspberry Pi hardware throttle flag; note that this flag responds to the
 ~80 C soft temperature limit, so configurations that reach 80-83 C show
 a non-zero throttle fraction while configurations D and E (max < 80 C)
