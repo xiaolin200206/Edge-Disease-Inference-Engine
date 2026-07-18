@@ -22,7 +22,9 @@ plainly is more useful than a blanket claim of reproducibility.
 **Fully reproducible from this repository, with no additional assets.**
 The duty-cycle thermal characterisation — Table 3, and the cut-off counts and coverage
 figures on which the paper's operational recommendation rests. The raw telemetry is
-released unfiltered; one command recomputes every value.
+released unfiltered; one command recomputes every value. Also the epoch-to-epoch
+stability analysis of §4.2.1, which is what licenses the paper's refusal to interpret
+the small difference between the two architectures.
 
 **Not reproducible from this repository.**
 Everything requiring the durian images or the trained weights: the leakage
@@ -48,6 +50,7 @@ images being distributed by us.
 | **Table 3** — duty-cycle thermal, 99 cut-offs to 0 | `reproduce/reproduce_table3.py` + `data/thermal_telemetry/` | **no** |
 | **§3.2** — taxonomy repair (`Early_Blight` / `early_blight`, nc 8 to 7) | `reproduce/remove_class_and_reindex.py` | yes |
 | **§5.1** — field-deployment latency and thermal motivation (177.8 ms median, CV 5.2%, 91% throttled) | `data/field_test.csv` | **no** |
+| **§4.2.1, §4.2.3** — epoch-to-epoch instability of the aggregate (0.178 and 0.225 in mAP@0.5) | `data/training_logs/` | **no** |
 | **§5** — field deployment system | `deployment/detection.py` | weights only |
 
 ---
@@ -80,6 +83,11 @@ controlled ablation and uses the *matched* retraining, under which architecture 
 only variable that differs from the YOLOv11s run. Reading a per-class value out of
 Fig. 2 and comparing it against Table 2 produces a discrepancy that is not an error.
 
+"Architecture is the only variable" is a claim about fourteen hyperparameters, so the
+configuration actually passed to the trainer is released as
+`data/training_logs/yolov8s_matched/args.yaml` rather than left as an assertion in the
+paper.
+
 ---
 
 ## Repository layout
@@ -106,7 +114,9 @@ Fig. 2 and comparing it against Table 2 produces a discrepancy that is not an er
 │   └── data_clean.yaml               # leak-free validation split
 └── data/
     ├── field_test.csv                # 46,576-sample field-deployment log (§5.1)
-    └── thermal_telemetry/            # five three-hour duty-cycle benchmarks (Table 3)
+    ├── thermal_telemetry/            # five three-hour duty-cycle benchmarks (Table 3)
+    └── training_logs/                # per-epoch records + configuration for both runs
+                                      # in Table 2; see its own README
 ```
 
 ---
@@ -200,6 +210,39 @@ a different class order relabels every annotation.
 
 ---
 
+### 5. Stability of the aggregate metric (§4.2.1) — no dataset needed
+
+```bash
+cd data/training_logs
+python - <<'EOF'
+import csv
+for run in ('yolov11s_wholeleaf', 'yolov8s_matched'):
+    r = list(csv.DictReader(open(f'{run}/results.csv')))
+    k5  = [c for c in r[0] if 'mAP50(B)'    in c and '95' not in c][0]
+    k95 = [c for c in r[0] if 'mAP50-95(B)' in c][0]
+    m5  = [float(x[k5])  for x in r][49:]
+    m95 = [float(x[k95]) for x in r][49:]
+    print(f'{run:<22} mAP@0.5 {min(m5):.3f}-{max(m5):.3f} (range {max(m5)-min(m5):.3f})  '
+          f'mAP@0.5:0.95 range {max(m95)-min(m95):.3f}')
+EOF
+```
+
+Over the final hundred epochs, on a validation set that does not change, mAP@0.5 varies by
+0.178 in the matched YOLOv8s run and 0.225 in the YOLOv11s run, while mAP@0.5:0.95 varies
+by only 0.076 and 0.099. The architecture difference reported in Table 2 is 0.017 — an
+order of magnitude below the runs' own epoch-to-epoch variation, which is why §4.2.1
+declines to interpret it. The instability is concentrated at the looser IoU threshold
+because classes holding one or two validation instances swing between zero and near-unity,
+and each such swing moves a six-class mean by up to 0.167.
+
+This also explains a discrepancy a reader will otherwise notice: peak mAP@0.5 during
+training is 0.438 and 0.462, while the checkpoints reported in Table 2 score 0.385 and
+0.402. The framework selects `best.pt` on a fitness criterion weighted nine-to-one toward
+mAP@0.5:0.95, the more stable quantity, and the same criterion selected both checkpoints.
+A rule that chased peak mAP@0.5 would be chasing the variation documented above.
+
+---
+
 ## What the leakage inventory contains
 
 `audit/leakage_report.csv` lists all 118 cross-partition pairs — 1 byte-identical and 117
@@ -228,7 +271,8 @@ to this dataset.
 ## Data availability
 
 **Released.** The duty-cycle thermal telemetry (`data/thermal_telemetry/`), the
-field-deployment telemetry log (`data/field_test.csv`), the complete leakage-pair
+field-deployment telemetry log (`data/field_test.csv`), the per-epoch training logs and
+configuration for both runs in Table 2 (`data/training_logs/`), the complete leakage-pair
 inventory as hashes (`audit/leakage_report.csv`), and all audit, reproduction and
 deployment code.
 
