@@ -47,6 +47,7 @@ images being distributed by us.
 | **Table 2** — controlled architecture ablation, YOLOv8s vs YOLOv11s | `reproduce/train_yolov8s_matched.py`, `reproduce/train_yolov11s_paper2.py`, `reproduce/count_classes.py` | yes |
 | **Table 3** — duty-cycle thermal, 99 cut-offs to 0 | `reproduce/reproduce_table3.py` + `data/thermal_telemetry/` | **no** |
 | **§3.2** — taxonomy repair (`Early_Blight` / `early_blight`, nc 8 to 7) | `reproduce/remove_class_and_reindex.py` | yes |
+| **§5.1** — field-deployment latency and thermal motivation (177.8 ms median, CV 5.2%, 91% throttled) | `data/field_test.csv` | **no** |
 | **§5** — field deployment system | `deployment/detection.py` | weights only |
 
 ---
@@ -104,6 +105,7 @@ Fig. 2 and comparing it against Table 2 produces a discrepancy that is not an er
 │   ├── data_orig_abs.yaml            # original validation split
 │   └── data_clean.yaml               # leak-free validation split
 └── data/
+    ├── field_test.csv                # 46,576-sample field-deployment log (§5.1)
     └── thermal_telemetry/            # five three-hour duty-cycle benchmarks (Table 3)
 ```
 
@@ -225,9 +227,10 @@ to this dataset.
 
 ## Data availability
 
-**Released.** The duty-cycle thermal telemetry (`data/thermal_telemetry/`), the complete
-leakage-pair inventory as hashes (`audit/leakage_report.csv`), and all audit, reproduction
-and deployment code.
+**Released.** The duty-cycle thermal telemetry (`data/thermal_telemetry/`), the
+field-deployment telemetry log (`data/field_test.csv`), the complete leakage-pair
+inventory as hashes (`audit/leakage_report.csv`), and all audit, reproduction and
+deployment code.
 
 **Not released.** The durian leaf-disease images and the trained weights (`.pt` / `.onnx`),
 which are assets of an ongoing commercialisation effort. Steps 2–4 above therefore require
