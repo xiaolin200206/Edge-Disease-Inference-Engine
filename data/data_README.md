@@ -31,6 +31,17 @@ this log are the median inference latency (177.8 ms), the coefficient
 of variation (5.2%), and the thermal conditions that motivated the
 duty-cycle study (91% of samples throttled, peak 82 °C).
 
+# Training logs (Table 2, §4.2.1, §4.2.3)
+
+`training_logs/` — per-epoch validation records and the training configuration for
+the two runs compared in Table 2, with its own README. Released so that two claims
+can be checked rather than taken on trust: that the YOLOv8s retraining really was
+run under the YOLOv11s configuration in full (`args.yaml`), and that the aggregate
+metric is unstable from epoch to epoch on an unchanged validation set
+(`results.csv`). Per-class AP is not recorded per epoch, so no claim about how an
+individual class behaved during training can be checked from these files, and none
+is made in the paper.
+
 # Note on the `Throttled` column
 
 The `Throttled` column in both the duty-cycle and field-deployment logs
