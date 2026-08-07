@@ -34,7 +34,9 @@ label indices are positional, so a different class order would relabel every ann
 epochs, on a validation set that does not change, mAP@0.5 varies by 0.178 in the matched
 YOLOv8s run and 0.225 in the YOLOv11s run, while mAP@0.5:0.95 varies by only 0.076 and
 0.099. The reported architecture difference is 0.017 — an order of magnitude below the
-run's own epoch-to-epoch variation, which is why Section 4.2.1 declines to interpret it.
+run's own epoch-to-epoch variation. The seed analysis of Section 4.2.1 reaches the
+same conclusion from run-to-run rather than epoch-to-epoch variation, and is the
+form the revised paper argues from; this table is retained as corroboration.
 
 To reproduce those figures:
 

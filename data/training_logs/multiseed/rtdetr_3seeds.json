@@ -1,0 +1,24 @@
+{
+  "note": "RT-DETR-l validated on the original partition, three seeds, ultralytics 8.4.87. Produced by reproduce/val_rtdetr.py.",
+  "seed0": {
+    "map50": 0.4593, "map": 0.3554,
+    "per_class_ap50": {"Algal_leave": 0.7879, "Leaf_rot": 0.0002, "Phomopsis": 0.0149,
+                       "Pink_Disease": 0.1659, "early_blight": 0.7918, "root_disease": 0.9950},
+    "per_class_ap": {"Algal_leave": 0.7268, "Leaf_rot": 0.0001, "Phomopsis": 0.0048,
+                     "Pink_Disease": 0.0866, "early_blight": 0.7166, "root_disease": 0.5974}
+  },
+  "seed1": {
+    "map50": 0.4638, "map": 0.3445,
+    "per_class_ap50": {"Algal_leave": 0.8339, "Leaf_rot": 0.0004, "Phomopsis": 0.1057,
+                       "Pink_Disease": 0.0281, "early_blight": 0.8197, "root_disease": 0.9950},
+    "per_class_ap": {"Algal_leave": 0.7714, "Leaf_rot": 0.0001, "Phomopsis": 0.0375,
+                     "Pink_Disease": 0.0069, "early_blight": 0.7531, "root_disease": 0.4982}
+  },
+  "seed2": {
+    "map50": 0.4359, "map": 0.3422,
+    "per_class_ap50": {"Algal_leave": 0.8116, "Leaf_rot": 0.0006, "Phomopsis": 0.0223,
+                       "Pink_Disease": 0.9950, "early_blight": 0.7407, "root_disease": 0.0452},
+    "per_class_ap": {"Algal_leave": 0.7594, "Leaf_rot": 0.0003, "Phomopsis": 0.0032,
+                     "Pink_Disease": 0.6260, "early_blight": 0.6553, "root_disease": 0.0089}
+  }
+}

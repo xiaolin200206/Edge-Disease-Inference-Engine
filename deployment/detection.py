@@ -25,12 +25,14 @@ def get_absolute_path(filename):
 MODEL_PATH = get_absolute_path("Leave_disease.onnx")
 
 # Cyclic workload scheduling (thermal protection)
-CYCLE_ACTIVE_SEC = 30     # active inference window (seconds)
-CYCLE_SLEEP_SEC = 30      # cooldown window (seconds)
+# Overridable from the environment so that a sweep can vary the duty cycle
+# without editing this file; defaults reproduce the deployed configuration.
+CYCLE_ACTIVE_SEC = int(os.environ.get("EDIE_CYCLE_ACTIVE_SEC", 30))
+CYCLE_SLEEP_SEC = int(os.environ.get("EDIE_CYCLE_SLEEP_SEC", 30))
 
 # Logging and storage
 SAVE_DATA_LOG = True
-SAVE_IMAGES = True
+SAVE_IMAGES = os.environ.get("EDIE_SAVE_IMAGES", "1") != "0"
 SAVE_IMG_INTERVAL = 2.0   # seconds
 INFERENCE_SIZE = 640
 
@@ -91,14 +93,33 @@ class SystemMonitor:
             return 0.0
 
     def get_throttled_state(self):
+        """
+        Current throttle state only.
+
+        vcgencmd get_throttled returns a bit field in which bits 0-3 describe
+        the present state and bits 16-19 latch whether each condition has
+        occurred at any point since boot. The sticky bits do not clear until
+        the device is rebooted, so testing the raw word against zero - as
+        earlier versions of this file did - reports "throttled" for the whole
+        remainder of a session after the first transient event, and makes the
+        resulting percentage a restatement of the time to first throttle
+        rather than an independent measurement. Only bits 0-3 are tested here.
+        The raw word is returned alongside so that the sticky history remains
+        available for auditing.
+
+        bit 0  under-voltage now        bit 16  under-voltage has occurred
+        bit 1  ARM frequency capped     bit 17  frequency capping has occurred
+        bit 2  currently throttled      bit 18  throttling has occurred
+        bit 3  soft temperature limit   bit 19  soft limit has occurred
+        """
         try:
             output = subprocess.check_output(
                 ["vcgencmd", "get_throttled"]
             ).decode()
-            status_hex = output.split("=")[1].strip()
-            return "Yes" if int(status_hex, 16) > 0 else "No"
+            raw = int(output.split("=")[1].strip(), 16)
+            return ("Yes" if raw & 0b1111 else "No"), hex(raw)
         except Exception:
-            return "Unknown"
+            return "Unknown", ""
 
     def get_ram_usage(self):
         return psutil.virtual_memory().percent
@@ -146,20 +167,25 @@ class EdgeDiseaseMonitor:
         ts = datetime.now().strftime("%Y%m%d_%H%M%S")
         base_dir = os.path.dirname(os.path.abspath(__file__))
 
-        self.log_dir = os.path.join(base_dir, "logs", f"session_{ts}")
+        label = os.environ.get("EDIE_RUN_LABEL")
+        self.log_dir = os.environ.get(
+            "EDIE_LOG_DIR", os.path.join(base_dir, "logs", f"session_{ts}"))
         self.img_dir = os.path.join(self.log_dir, "images")
 
         os.makedirs(self.img_dir, exist_ok=True)
 
-        self.data_log = os.path.join(self.log_dir, "data_for_thesis.csv")
-        self.event_log = os.path.join(self.log_dir, "cycle_events.csv")
+        stem = label or "data_for_thesis"
+        self.data_log = os.path.join(self.log_dir, f"{stem}_data.csv")
+        self.event_log = os.path.join(
+            self.log_dir, f"{stem}_events.csv" if label else "cycle_events.csv")
 
         if SAVE_DATA_LOG:
             with open(self.data_log, "w", newline="") as f:
                 csv.writer(f).writerow([
                     "Timestamp", "Mode", "Latency_ms", "FPS",
                     "CPU_Usage_%", "RAM_Usage_%", "CPU_Temp_C",
-                    "Throttled", "Confidence_Max", "Detection_Result"
+                    "Throttled", "Throttled_Raw",
+                    "Confidence_Max", "Detection_Result"
                 ])
 
             with open(self.event_log, "w", newline="") as f:
@@ -182,6 +208,23 @@ class EdgeDiseaseMonitor:
     # --------------------------------------------------
 
     def _init_camera(self):
+        """
+        Acquire a camera, or abort.
+
+        An earlier version fell back to cv2.VideoCapture(0) without checking
+        that the device had opened. With no camera attached the capture object
+        is created but yields no frames, the inference call receives no source,
+        and the framework silently substitutes its own bundled sample images.
+        A benchmark run in that state completes normally and produces telemetry
+        that looks valid: in one three-hour run the median latency was 819 ms
+        against 410 ms with the camera present, and the recorded detections
+        described photographs that had nothing to do with the crop. Aborting is
+        the only safe behaviour, because the failure is otherwise invisible
+        until the numbers are compared against an earlier round.
+
+        Set EDIE_ALLOW_NO_CAMERA=1 to bypass this check. Do not set it for any
+        run whose telemetry will be reported.
+        """
         try:
             from picamera2 import Picamera2
             self.camera = Picamera2()
@@ -191,9 +234,28 @@ class EdgeDiseaseMonitor:
             self.camera.configure(cfg)
             self.camera.start()
             self.camera_type = "picamera"
-        except Exception:
-            self.camera = cv2.VideoCapture(0)
-            self.camera_type = "usb"
+            return
+        except Exception as e:
+            picam_error = e
+
+        self.camera = cv2.VideoCapture(0)
+        self.camera_type = "usb"
+        if not self.camera.isOpened():
+            if os.environ.get("EDIE_ALLOW_NO_CAMERA") == "1":
+                print("WARNING: no camera; EDIE_ALLOW_NO_CAMERA is set. "
+                      "Telemetry from this run must not be reported.")
+                return
+            raise SystemExit(
+                "FATAL: no camera available.\n"
+                f"  picamera2: {type(picam_error).__name__}: {picam_error}\n"
+                "  cv2.VideoCapture(0): device did not open\n"
+                "Attach the camera and check `v4l2-ctl --list-devices`. "
+                "Aborting rather than benchmarking against sample images.")
+
+        ok, _ = self.camera.read()
+        if not ok:
+            raise SystemExit(
+                "FATAL: camera opened but returned no frame. Aborting.")
 
     # --------------------------------------------------
 
@@ -309,7 +371,7 @@ class EdgeDiseaseMonitor:
                         f"{self.monitor.get_cpu_usage():.1f}",
                         f"{self.monitor.get_ram_usage():.1f}",
                         f"{self.monitor.get_cpu_temp():.1f}",
-                        self.monitor.get_throttled_state(),
+                        *self.monitor.get_throttled_state(),
                         max([d["conf"] for d in detections], default=0.0),
                         "|".join([d["disease"] for d in detections]) or "None"
                     ])
