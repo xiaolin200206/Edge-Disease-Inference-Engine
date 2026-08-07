@@ -2,41 +2,145 @@
 
 Code, telemetry, and audit tools accompanying the manuscript:
 
-> **Thermal Cut-off, Not Throttling: Duty-Cycle Scheduling and a Dataset-Integrity
-> Audit for On-Farm Edge Disease Detection in Durian**
+> **Thermal Cut-off, Not Frequency Throttling: Duty-Cycle Scheduling and a
+> Dataset-Integrity Audit for On-Farm Edge Disease Detection in Durian**
 > Lin Ding Shan, Institute of Computer Science and Digital Innovation, UCSI University
 > ORCID [0009-0009-6031-8479](https://orcid.org/0009-0009-6031-8479)
-> Under review, *Smart Agricultural Technology*, 2026.
+> Under review, *Smart Agricultural Technology*, 2026 (ATECH-D-26-02454, revision 1).
 
 This repository contains (1) the offline field-deployment inference engine, (2) the
-dataset-integrity audit used to detect and quantify a train/validation leak, and (3)
-scripts and telemetry that reproduce the paper's analyses from raw data.
+dataset-integrity audit used to detect, quantify and correct a train/validation leak,
+and (3) scripts and telemetry that reproduce the paper's analyses from raw data.
+
+---
+
+## What changed in revision 1
+
+Ten changes are material enough that anyone who used the first release should know
+about them. Five are corrections to this repository's own code or claims.
+
+**Power is now measured.** The first release asserted that energy was not the binding
+constraint without measuring it. All five duty-cycle configurations were re-run a
+third time with the SoC's power-management controller sampled every two seconds
+(`data/power_round3/`, `reproduce/analyse_power.py`). The result does not go the way
+the assertion implied: duty cycling lowers mean SoC power 28.2% but raises energy per
+inference 39.4%, because the idle floor is paid throughout the sleep interval. The
+configuration that runs hottest also draws the least power while active, because it is
+the only one being thermally limited. That round's thermal record is released but is
+not used for any thermal claim - see `data/power_round3/README.md` for why.
+
+**RT-DETR-l now has three seeds.** The first release reported it on one, which has no
+spread. Seeds 1 and 2 are added (`data/training_logs/multiseed/`,
+`data/training_logs/multiseed/rtdetr_3seeds.json`, `reproduce/val_rtdetr.py`), giving
+mAP@0.5 = 0.4530 +/- 0.0150. The replication also produced an observation that is now
+in Section 4.2.1: on this architecture the two smallest classes exchange their scores
+between seeds, root_disease and Pink_Disease swapping 0.995 for 0.045 and 0.028 with
+nothing changed but the seed. They hold one and two validation instances.
+
+**The field log did not predate the duty-cycle build.** The first release described
+`data/field_test.csv` as having been collected under continuous inference with a build
+carrying neither the scheduler nor the cut-off. Its own timestamps disprove that: the
+log contains 138 pauses of 15.2 s at a median spacing of 75.1 s, which is the
+60 s / 15 s period of configuration B, and 20 pauses of 5.2 s occurring only between
+79.3 and 81.5 degrees C, which is the cut-off retry. Counting 5 s and 20 s pauses
+together — the rule that reproduces the laboratory event-log counts exactly (99, 108,
+32 + 9 = 41, 2 + 1 = 3) — gives 27 cut-off events in the field.
+
+**The field log is a concatenation of runs, and must be split at its timestamp
+discontinuities.** The series steps backwards three times (-80.4 s, -111.9 s,
+-242.8 s), each step a boundary between runs whose wall clocks overlap. Splitting on
+forward gaps alone merges three of them, which overstates the substantive run's
+duration and dilutes its throttling fraction with samples taken before the device
+warmed up. `reproduce/field_log_intervals.py` splits on both. The substantive run is
+2.25 h, 91.2% throttled, peak 81.5 degrees C, 27 inferred cut-offs costing 1.66% of
+it. The first release's 2.25 h and 91% were right; its 82 degrees C rounded up from
+81.5, and its description of the build was wrong.
+
+**Figure 3 had its axis labels transposed.** The confusion matrix was computed with
+predictions on the vertical axis and ground truth on the horizontal, and labelled the
+other way round. Read as labelled it showed 54 spurious Phomopsis detections on
+background; read correctly it shows all 54 Phomopsis instances missed and no Phomopsis
+box emitted anywhere. `reproduce/make_figures_2_3.py` redraws it and checks its column
+totals against the validation composition before writing.
+
+**Replication of the thermal characterisation.** All five duty-cycle configurations
+were re-run four weeks after the first round, on the same device with the same
+software stack and the same camera, with an automatic wait for the SoC to fall below
+55 °C before each run. Both rounds are released. The direction of the effect
+replicates without exception; the magnitude of the intermediate counts does not.
+
+**A bug in the throttle flag, and its consequence.** `vcgencmd get_throttled` returns
+a bit field whose bits 16–19 latch until reboot. The first release tested the raw word
+against zero, so once any transient event occurred the flag never cleared for the rest
+of the session. The reported "percentage of samples throttled" was therefore not an
+independent measurement: it equals `100 × (1 − t_first / duration)`, a restatement of
+the time-to-first-throttle column beside it. Verified across all released runs — zero
+set-to-clear transitions. `deployment/detection.py` now masks with `0b1111` and logs
+the raw word separately as `Throttled_Raw`. The revised manuscript drops the
+percentage column and reports cut-off counts, which the engine records independently
+at its own 82 °C threshold.
+
+**A silent camera fallback, and the runs it invalidated.** `_init_camera` fell back to
+`cv2.VideoCapture(0)` without checking that the device had opened. With no camera
+attached the capture object exists but yields nothing, and the inference framework
+substitutes its own bundled sample images. A three-hour benchmark in that state
+completes and writes plausible-looking telemetry; it was caught only because median
+latency was 819 ms against 410 ms with the camera present. The engine now aborts.
+The affected runs are retained under `data/thermal_telemetry_INVALID_no_camera/`
+rather than deleted, because the failure mode is worth being able to recognise.
+
+**Retraining on a leak-free partition.** The first release stated that pre-augmentation
+source photographs could no longer be recovered as a distinct set, so a source-level
+re-partition would have to rely on perceptual clustering alone. That was too strong.
+Roboflow preserves the pre-export filename before the `.rf.` marker, and of 1,121
+images 223 multi-image stems cover 452 of them; 25 further groups are byte-identical.
+`audit/regroup_split.py` combines those provenance signals with dihedral-invariant
+perceptual hashing, and `training/run_m1.py` retrains on the resulting partition.
+
+**Replication across seeds and a third architecture family.** `training/multiseed.py`
+trains the matched configuration under several seeds; `training/run_rtdetr.py` adds a
+transformer-based, NMS-free detector under the identical configuration;
+`training/collect_table2.py` evaluates every run and reports the spread within each
+architecture and the paired difference on shared seeds.
+
+**Bootstrap intervals on per-class AP.** `audit/bootstrap_ap.py` resamples the
+validation set at the image level, evaluating both checkpoints on identical resamples
+so that the architecture difference is a paired quantity. It requires one inference
+pass and no retraining.
 
 ---
 
 ## Read this first: what is and is not reproducible here
 
-The paper reports two kinds of result, and they are not equally checkable. Saying so
-plainly is more useful than a blanket claim of reproducibility.
+The paper reports two kinds of result, and they are not equally checkable.
 
 **Fully reproducible from this repository, with no additional assets.**
-The duty-cycle thermal characterisation — Table 3, and the cut-off counts and coverage
-figures on which the paper's operational recommendation rests. The raw telemetry is
-released unfiltered; one command recomputes every value. Also the epoch-to-epoch
-stability analysis of §4.2.1, which is what licenses the paper's refusal to interpret
-the small difference between the two architectures.
+Everything that rests on telemetry rather than on imagery, which is more of the paper
+than the split first suggests:
+
+- the duty-cycle thermal characterisation across both rounds, and the cut-off counts
+  and coverage figures the operational recommendation rests on (Table 3);
+- the SoC power measurement and every derived quantity in Table 4, including the
+  energy-per-inference result (§4.4);
+- the field-session analysis: session segmentation, latency, throttling fraction and
+  the calibrated cut-off inference (§5.1, §5.4);
+- Figures 5, 6 and 7, redrawn from the released telemetry;
+- Figures 2 and 3, whose values are carried in the plotting script itself.
+
+The raw telemetry is released unfiltered; one command recomputes every value in each
+case. `verify_tables.py` checks the numbers that appear in the paper against the logs.
 
 **Not reproducible from this repository.**
 Everything requiring the durian images or the trained weights: the leakage
-quantification (Table 1), the architecture ablation (Table 2), and the per-class
-figures. The dataset and weights are assets of an ongoing commercialisation effort and
-are not released.
+quantification, the architecture comparison including the RT-DETR-l seeds, the seed and
+bootstrap analyses, the leak-free retraining, and the taxonomy repair. The dataset and
+weights are assets of an ongoing commercialisation effort and are not released.
 
-For those results the repository provides the *procedure* rather than the *evidence*:
-every script is released so it can be run against any other detection dataset, and the
-leakage inventory is published **as hashes**, so the specific leak reported in the paper
-can be checked by anyone holding the same images — or the same export — without the
-images being distributed by us.
+For those results the repository provides the *procedure* rather than the *evidence*.
+Every script runs against any other detection dataset in YOLO format, and the leakage
+inventory is published **as hashes**, so the specific leak reported in the paper can be
+checked by anyone holding the same images — or the same export — without the images
+being distributed here.
 
 ---
 
@@ -44,253 +148,143 @@ images being distributed by us.
 
 | Paper element | Script / data | Needs the dataset? |
 |---|---|---|
-| **§4.1 Integrity audit** — 1 byte-identical + 117 near-duplicate pairs | `audit/check_leakage_leafrot.py` → `audit/leakage_report.csv` | yes |
-| **Table 1** — leak-free re-evaluation (Algal_leave +35.0%, mAP@0.5 +9.5%, mAP@0.5:0.95 +14.8%) | `reproduce/clean_val_and_revalidate.py` | yes |
-| **Table 2** — controlled architecture ablation, YOLOv8s vs YOLOv11s | `reproduce/train_yolov8s_matched.py`, `reproduce/train_yolov11s_paper2.py`, `reproduce/count_classes.py` | yes |
-| **Table 3** — duty-cycle thermal, 99 cut-offs to 0 | `reproduce/reproduce_table3.py` + `data/thermal_telemetry/` | **no** |
-| **§3.2** — taxonomy repair (`Early_Blight` / `early_blight`, nc 8 to 7) | `reproduce/remove_class_and_reindex.py` | yes |
-| **§5.1** — field-deployment latency and thermal motivation (177.8 ms median, CV 5.2%, 91% throttled) | `data/field_test.csv` | **no** |
-| **§4.2.1, §4.2.3** — epoch-to-epoch instability of the aggregate (0.178 and 0.225 in mAP@0.5) | `data/training_logs/` | **no** |
-| **§5** — field deployment system | `deployment/detection.py` | weights only |
+| **§4.1** Integrity audit — 1 byte-identical + 117 near-duplicate pairs | `audit/check_leakage_leafrot.py` → `audit/leakage_report.csv` | yes |
+| **§4.1** Source-component reconstruction, threshold sweep, ≈750 sources behind 1,121 images | `audit/regroup_split.py --report-only` | yes |
+| **Table 1** Leak-free re-evaluation, model held fixed | `reproduce/clean_val_and_revalidate.py` | yes |
+| **Table 2** Architecture comparison across seeds and families | `training/multiseed.py`, `training/run_rtdetr.py`, `training/collect_table2.py` | yes |
+| **Supplementary Table S3** (S4.2.2) Bootstrap confidence intervals, paired across checkpoints | `audit/bootstrap_ap.py` | yes |
+| **§4.4, Table 4** SoC power by duty-cycle configuration | `reproduce/analyse_power.py` + `data/power_round3/` | **no** |
+| **Table 2, S4** RT-DETR-l across three seeds | `training/train_rtdetr_seeds.py`, `reproduce/val_rtdetr.py` | yes |
+| **§4.2.4** Retraining on the leak-free partition | `audit/regroup_split.py` then `training/run_m1.py` | yes |
+| **Table 3** Duty-cycle thermal, both rounds | `reproduce/reproduce_table3.py` + `data/thermal_telemetry*/` | **no** |
+| **§3.2** Taxonomy repair (`Early_Blight`/`early_blight`, nc 8 → 7) | `reproduce/remove_class_and_reindex.py` | yes |
+| **§5.1, §5.4** Field session: segmentation, latency, throttling, inferred cut-offs | `reproduce/field_log_intervals.py` + `data/field_test.csv` | **no** |
+| **Figs. 2, 3** Per-class AP and confusion matrix, pre-cleanup taxonomy | `reproduce/make_figures_2_3.py` | **no** |
+| **Figs. 5, 6, 7** Thermal traces, transitions, latency | `reproduce/make_figures.py` + `data/thermal_telemetry*/` | **no** |
+| **§5** Field deployment system | `deployment/detection.py` | weights only |
 
 ---
 
 ## Two conventions that decide whether a number is comparable
 
-**Evaluation threshold.** Every detection figure in the paper — every table, every
-figure — is scored at the framework's *default* detector confidence threshold, at which
-essentially every candidate box enters the precision–recall computation. This matters
-more than it sounds. Scoring one architecture at a stricter threshold than another
-silently changes the comparison, and a class that scores 0.000 at a strict threshold has
-not necessarily failed; it may simply have been filtered out. The claim in §4.2.3 is that
-two classes score zero *at the loosest available threshold*, which is a different and far
-stronger statement.
+**Evaluation threshold.** Every detection figure in the paper is computed at the
+framework's default detector confidence threshold, at which essentially every
+candidate box enters the precision–recall computation. A figure computed at a tuned
+operating point is not comparable to one here. `audit/bootstrap_ap.py` uses an
+independent AP implementation (101-point interpolation, IoU 0.5, no confidence
+threshold) whose point estimates differ from the framework's by up to 0.13 in
+aggregate; its intervals are reported as relative uncertainty, not as a
+re-estimation of the framework's values.
 
-One exception is disclosed in the paper and repeated here: Ultralytics assembles its
-confusion matrix at a fixed display threshold of 0.25 even when AP is computed at the
-default. Fig. 3 therefore shows where detections go, not how well they score, and its
-cell counts are not a second view of the AP values.
+**Training environment.** Every run in the revised Table 2 was trained on one machine
+under one framework version. This was not true of the first release: the two
+architectures were trained thirteen days apart under ultralytics 8.4.100 and 8.4.87
+respectively, which the manuscript described as a comparison in which architecture was
+the only variable. The discrepancy is recoverable from the `version` and `date` fields
+that the framework embeds in every checkpoint:
 
-**Which YOLOv8s run.** There are two, and they are not interchangeable.
+```python
+import torch
+ck = torch.load("weights/best.pt", map_location="cpu", weights_only=False)
+print(ck["version"], ck["date"], ck["train_args"]["data"])
+```
 
-| | epochs | batch | early stopping | reported in |
-|---|---|---|---|---|
-| original | 50 | 16 | permitted | Figs. 2 and 3 |
-| **matched** | **150** | **4** | **disabled** | **Table 2** |
-
-Figures 2 and 3 document the taxonomy fault in the *original* run. Table 2 is the
-controlled ablation and uses the *matched* retraining, under which architecture is the
-only variable that differs from the YOLOv11s run. Reading a per-class value out of
-Fig. 2 and comparing it against Table 2 produces a discrepancy that is not an error.
-
-"Architecture is the only variable" is a claim about fourteen hyperparameters, so the
-configuration actually passed to the trainer is released as
-`data/training_logs/yolov8s_matched/args.yaml` rather than left as an assertion in the
-paper.
+Run this on any checkpoint before comparing it to another.
 
 ---
 
-## Repository layout
+## Layout
 
 ```
-.
-├── deployment/
-│   └── detection.py                  # offline field inference engine (§5): thermal-aware
-│                                     # duty-cycling, 82 C cut-off, temporal-confirmation
-│                                     # buffering, class-specific thresholds, CSV telemetry
-├── audit/
-│   ├── check_leakage_leafrot.py      # §4.1 leakage + Leaf_rot distribution audit
-│   ├── add_hashes.py                 # adds MD5/pHash columns to an existing report
-│   └── leakage_report.csv            # all 118 cross-partition pairs, by hash
-├── reproduce/
-│   ├── reproduce_table3.py           # Table 3 from raw telemetry (one command)
-│   ├── clean_val_and_revalidate.py   # Table 1: quantify the leakage effect
-│   ├── train_yolov8s_matched.py      # Table 2: matched-configuration ablation
-│   ├── train_yolov11s_paper2.py      # Table 2: the YOLOv11s run
-│   ├── count_classes.py              # per-class instance / source-image counts
-│   └── remove_class_and_reindex.py   # taxonomy repair, nc 8 to 7
-├── config/
-│   ├── data_orig_abs.yaml            # original validation split
-│   └── data_clean.yaml               # leak-free validation split
-└── data/
-    ├── field_test.csv                # 46,576-sample field-deployment log (§5.1)
-    ├── thermal_telemetry/            # five three-hour duty-cycle benchmarks (Table 3)
-    └── training_logs/                # per-epoch records + configuration for both runs
-                                      # in Table 2; see its own README
+audit/
+  check_leakage_leafrot.py   MD5 + pHash cross-partition duplicate detection
+  add_hashes.py              hash inventory for the released report
+  regroup_split.py           source-component reconstruction and leak-free split
+  bootstrap_ap.py            image-level bootstrap CIs on per-class AP
+  leakage_report.csv         released inventory, hashes only
+training/
+  multiseed.py               retrain the matched configuration under N seeds
+  run_rtdetr.py              third architecture family, identical configuration
+  run_m1.py                  retrain on the leak-free partition
+  collect_table2.py          evaluate every run; spread and paired differences
+reproduce/
+  reproduce_table3.py        duty-cycle table from raw telemetry, both rounds
+  analyse_power.py           Table 4, SoC power by duty cycle (third round)
+  val_rtdetr.py              RT-DETR-l three-seed validation
+  verify_tables.py           checks the paper's telemetry numbers against the logs
+  make_figure_4.py           Fig. 4
+  field_log_intervals.py     field session: calibrates the cut-off inference
+                             against the laboratory event logs, then applies it
+  make_figures.py            Figs. 5, 6, 7
+  make_figures_2_3.py        Figs. 2, 3; checks its own column totals
+  clean_val_and_revalidate.py
+  remove_class_and_reindex.py
+  count_classes.py
+  train_yolov8s_matched.py   first-release training entry points, retained
+  train_yolov11s_paper2.py
+deployment/
+  detection.py               field inference engine, duty-cycle scheduler
+data/
+  thermal_telemetry/                   round 1, July 2026
+  thermal_telemetry_aug2026/           round 2, August 2026
+  power_round3/                        round 3, power-instrumented; see its README
+  thermal_telemetry_INVALID_no_camera/ retained failed runs, see above
+  training_logs/
+  field_test.csv
+config/
+  data_clean.yaml, data_orig_abs.yaml
 ```
 
 ---
 
-## Setup
+## Quick start
+
+Reproduce the thermal table, which needs nothing but this repository:
 
 ```bash
 pip install -r requirements.txt
-```
-
-Tested with Python 3.10+ on Raspberry Pi OS (deployment) and desktop Linux/Windows
-(reproduction).
-
----
-
-## Reproducing the results
-
-### 1. Duty-cycle thermal characterisation (Table 3) — no dataset needed
-
-```bash
 python reproduce/reproduce_table3.py --data-dir data/thermal_telemetry
+python reproduce/reproduce_table3.py --data-dir data/thermal_telemetry --published-only
 ```
 
-Recomputes, for all five configurations, the sample count, mean and maximum CPU
-temperature, time to first throttle, throttle-flag percentage, and monitoring coverage.
-The released logs are unfiltered.
+The second command reproduces the first release's table exactly, so the effect of
+adding the replicate runs is visible as a difference rather than asserted.
 
-This is the reproduction that matters most, because the paper's operational conclusion
-rests on it: continuous inference triggered 99 software thermal cut-offs and a 15 s sleep
-interval still triggered 41, whereas a 30 s interval eliminated them entirely. Throttling
-itself cost only 2.7% of median latency, so what duty cycling buys is uninterrupted
-operation rather than frame rate.
-
-### 2. Dataset-integrity audit (§4.1) — needs the images
+Run the audit against your own dataset:
 
 ```bash
-python audit/check_leakage_leafrot.py \
-    --train_images Leave_disease/train/images \
-    --val_images   Leave_disease/valid/images \
-    --train_labels Leave_disease/train/labels \
-    --val_labels   Leave_disease/valid/labels \
-    --classes_yaml config/data_orig_abs.yaml
+python audit/check_leakage_leafrot.py --root /path/to/dataset
+python audit/regroup_split.py --root /path/to/dataset --report-only --threshold 2
 ```
 
-Regenerates `leakage_report.csv` with MD5 and pHash for both members of every pair, plus
-the Leaf_rot / Phomopsis instance-to-image distribution.
+The threshold matters. At a Hamming distance of 10 the components chain-merge: in the
+largest component of this dataset 74% of pairs exceeded the threshold and the median
+pairwise distance was 28, which is what transitive closure over a visually homogeneous
+class produces. A genuine duplicate group has a pairwise distance near zero. Sweep the
+threshold and inspect component diameter before trusting a partition.
 
-To add hash columns to an existing report without re-running the audit:
+Field deployment:
 
 ```bash
-python audit/add_hashes.py --report audit/leakage_report.csv \
-    --train_images Leave_disease/train/images \
-    --val_images   Leave_disease/valid/images
+python deployment/detection.py
+
+EDIE_CYCLE_ACTIVE_SEC=60 EDIE_CYCLE_SLEEP_SEC=30 \
+EDIE_RUN_LABEL=groupC_60-30 EDIE_LOG_DIR=./logs/groupC \
+  python deployment/detection.py
 ```
 
-This also verifies that the recomputed pHash distances reproduce the distances already in
-the report, and that exact pairs really do share an MD5.
-
-### 3. Quantify the leakage (Table 1) — needs images + weights
-
-```bash
-python reproduce/clean_val_and_revalidate.py --weights <trained.pt> --dataset Leave_disease
-```
-
-Removes every leaking validation image listed in `leakage_report.csv`, then validates the
-*same* weights on the original and cleaned validation sets. This isolates the leak's
-contribution: Algal_leave inflated by 35.0%, aggregate mAP@0.5 by 9.5%.
-
-`<trained.pt>` is the study's trained checkpoint, not the COCO-pretrained `yolo11s.pt`.
-
-### 4. Controlled architecture ablation (Table 2) — needs the images
-
-```bash
-python reproduce/train_yolov8s_matched.py --data config/data_orig_abs.yaml
-python reproduce/train_yolov11s_paper2.py
-python reproduce/count_classes.py
-```
-
-`train_yolov8s_matched.py` runs a preflight check before training and refuses to start if
-the class count or the class order differs from the YOLOv11s run. Both matter: with
-`optimizer='auto'` the initial learning rate is derived from the class count, so a
-different `nc` silently unmatches the configuration; and label indices are positional, so
-a different class order relabels every annotation.
-
-`count_classes.py` also confirms the case-sensitivity duplicate (`Early_Blight` vs
-`early_blight`) discussed in §4.2.
-
-> **Paths.** The `config/*.yaml` files and several scripts contain absolute Windows paths
-> from the original environment. Edit `train:` / `val:` in the YAMLs and the `BASE_DIR` /
-> `--dataset` arguments before running any dataset-dependent step.
-
----
-
-### 5. Stability of the aggregate metric (§4.2.1) — no dataset needed
-
-```bash
-cd data/training_logs
-python - <<'EOF'
-import csv
-for run in ('yolov11s_wholeleaf', 'yolov8s_matched'):
-    r = list(csv.DictReader(open(f'{run}/results.csv')))
-    k5  = [c for c in r[0] if 'mAP50(B)'    in c and '95' not in c][0]
-    k95 = [c for c in r[0] if 'mAP50-95(B)' in c][0]
-    m5  = [float(x[k5])  for x in r][49:]
-    m95 = [float(x[k95]) for x in r][49:]
-    print(f'{run:<22} mAP@0.5 {min(m5):.3f}-{max(m5):.3f} (range {max(m5)-min(m5):.3f})  '
-          f'mAP@0.5:0.95 range {max(m95)-min(m95):.3f}')
-EOF
-```
-
-Over the final hundred epochs, on a validation set that does not change, mAP@0.5 varies by
-0.178 in the matched YOLOv8s run and 0.225 in the YOLOv11s run, while mAP@0.5:0.95 varies
-by only 0.076 and 0.099. The architecture difference reported in Table 2 is 0.017 — an
-order of magnitude below the runs' own epoch-to-epoch variation, which is why §4.2.1
-declines to interpret it. The instability is concentrated at the looser IoU threshold
-because classes holding one or two validation instances swing between zero and near-unity,
-and each such swing moves a six-class mean by up to 0.167.
-
-This also explains a discrepancy a reader will otherwise notice: peak mAP@0.5 during
-training is 0.438 and 0.462, while the checkpoints reported in Table 2 score 0.385 and
-0.402. The framework selects `best.pt` on a fitness criterion weighted nine-to-one toward
-mAP@0.5:0.95, the more stable quantity, and the same criterion selected both checkpoints.
-A rule that chased peak mAP@0.5 would be chasing the variation documented above.
-
----
-
-## What the leakage inventory contains
-
-`audit/leakage_report.csv` lists all 118 cross-partition pairs — 1 byte-identical and 117
-near-duplicate — with, for each member:
-
-| column | meaning |
-|---|---|
-| `type` | `exact` (identical MD5) or `near` (pHash distance < 10) |
-| `val_image`, `train_image` | filenames as they appear in the export |
-| `hamming_distance` | perceptual-hash distance between the pair |
-| `val_md5`, `train_md5` | MD5 of the file bytes |
-| `val_phash`, `train_phash` | 64-bit perceptual hash (imagehash defaults, 8x8 DCT) |
-
-The hashes are what makes the claim checkable. Anyone holding the same images can
-recompute them and confirm — or refute — that these specific pairs straddle the
-train/validation boundary, without us distributing a single image.
-
-The fault itself is diagnosable from the inventory: the near-duplicates concentrate in one
-group of source photographs, and the training partition holds augmented variants of images
-whose siblings sit on the other side of the split. That is an augmentation-before-split
-error, a workflow hazard of browser-based annotation tools rather than a mistake peculiar
-to this dataset.
+The engine aborts if no camera is available. `EDIE_ALLOW_NO_CAMERA=1` bypasses that
+check; telemetry from such a run must not be reported.
 
 ---
 
 ## Data availability
 
-**Released.** The duty-cycle thermal telemetry (`data/thermal_telemetry/`), the
-field-deployment telemetry log (`data/field_test.csv`), the per-epoch training logs and
-configuration for both runs in Table 2 (`data/training_logs/`), the complete leakage-pair
-inventory as hashes (`audit/leakage_report.csv`), and all audit, reproduction and
-deployment code.
+The durian disease image dataset and the trained model weights are proprietary assets
+of an ongoing commercialisation effort and are not publicly released. All code,
+telemetry and hash inventories required to reproduce the reported analyses are
+provided here.
 
-**Not released.** The durian leaf-disease images and the trained weights (`.pt` / `.onnx`),
-which are assets of an ongoing commercialisation effort. Steps 2–4 above therefore require
-the original images; step 1 is fully self-contained.
+## Licence
 
----
-
-## Citation
-
-```
-L. D. Shan, "Thermal Cut-off, Not Throttling: Duty-Cycle Scheduling and a
-Dataset-Integrity Audit for On-Farm Edge Disease Detection in Durian,"
-under review, Smart Agricultural Technology, 2026.
-```
-
-## License
-
-Apache-2.0. Code and telemetry are released for research reproducibility; the image
-dataset and model weights are not covered by this license and are not distributed.
+See `LICENSE`.

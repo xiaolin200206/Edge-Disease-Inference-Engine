@@ -32,8 +32,14 @@ import os
 
 # ---------------- CONFIG — edit these before running ----------------
 
-# Point this at the data.yaml inside your Leave_disease folder
-DATA_YAML = r"C:\Users\Lim Ding Shan\Desktop\Durian project and paper\second paper\Leave_disease\data.yaml"
+# Dataset configuration. Pass --data, or set $DURIAN_DATA_YAML.
+# Defaults to the relative config shipped with this repository.
+import argparse as _argparse
+_ap = _argparse.ArgumentParser(description=__doc__)
+_ap.add_argument("--data", default=os.environ.get(
+    "DURIAN_DATA_YAML",
+    os.path.join(os.path.dirname(__file__), "..", "config", "data_orig_abs.yaml")))
+DATA_YAML = os.path.abspath(_ap.parse_args().data)
 
 MODEL_WEIGHTS = "yolo11s.pt"   # pretrained COCO checkpoint, auto-downloads first run
 

@@ -7,15 +7,22 @@
     直接双击运行,或者在命令行里:
         python count_classes.py
 
-如果路径不对,改下面 BASE_DIR 这一行就好。
+Dataset location: pass --data-root, or set $DURIAN_DATA_ROOT.
+Defaults to ../../Leave_disease relative to this file.
 """
 
 import os
 from collections import Counter
 
-# ====== 按需修改这里的路径 ======
-BASE_DIR = r"C:\Users\Lim Ding Shan\Desktop\Durian project and paper\second paper\Leave_disease"
-# ================================
+import argparse
+
+_ap = argparse.ArgumentParser(description=__doc__)
+_ap.add_argument("--data-root", default=os.environ.get(
+    "DURIAN_DATA_ROOT",
+    os.path.join(os.path.dirname(__file__), "..", "..", "Leave_disease")),
+    help="dataset root containing train/ and valid/ "
+         "(default: ../../Leave_disease, or $DURIAN_DATA_ROOT)")
+BASE_DIR = os.path.abspath(_ap.parse_args().data_root)
 
 NAMES = [
     'Algal_leave', 'Leaf_rot', 'Phomopsis',
