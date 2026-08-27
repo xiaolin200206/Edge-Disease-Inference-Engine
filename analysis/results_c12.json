@@ -1,0 +1,221 @@
+{
+  "baseline": {
+    "band_5s": [
+      5.0,
+      5.6
+    ],
+    "band_20s": [
+      19.8,
+      20.6
+    ],
+    "session_gap_s": 60.0,
+    "inferred_total": 27,
+    "spans": [
+      {
+        "n_samples": 11734,
+        "duration_h": 0.79,
+        "n5": 0,
+        "n20": 0,
+        "inferred": 0
+      },
+      {
+        "n_samples": 33802,
+        "duration_h": 2.25,
+        "n5": 20,
+        "n20": 7,
+        "inferred": 27
+      }
+    ]
+  },
+  "gap_histogram_4_to_7s": [
+    {
+      "bin": [
+        5.1,
+        5.2
+      ],
+      "n": 14
+    },
+    {
+      "bin": [
+        5.2,
+        5.3
+      ],
+      "n": 6
+    }
+  ],
+  "gap_histogram_19_to_22s": [
+    {
+      "bin": [
+        20.2,
+        20.3
+      ],
+      "n": 7
+    }
+  ],
+  "gap_histogram_14_to_17s": [
+    {
+      "bin": [
+        15.1,
+        15.2
+      ],
+      "n": 5
+    },
+    {
+      "bin": [
+        15.2,
+        15.3
+      ],
+      "n": 132
+    },
+    {
+      "bin": [
+        15.3,
+        15.4
+      ],
+      "n": 3
+    }
+  ],
+  "n_gaps_total": 46574,
+  "n_gaps_between_6_and_14s": 0,
+  "n_gaps_between_21_and_60s": 0,
+  "band_sweep_n_settings": 400,
+  "band_sweep_n_calibration_exact": 240,
+  "inferred_range_over_calibration_exact_settings": [
+    27,
+    27
+  ],
+  "inferred_values_over_calibration_exact_settings": [
+    27
+  ],
+  "example_settings_that_break_calibration": [
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.0,
+        20.4
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.0,
+        20.6
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.0,
+        21.0
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.0,
+        22.0
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.5,
+        20.4
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.5,
+        20.6
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.5,
+        21.0
+      ],
+      "inferred": 27
+    },
+    {
+      "band_5s": [
+        4.0,
+        5.4
+      ],
+      "band_20s": [
+        19.5,
+        22.0
+      ],
+      "inferred": 27
+    }
+  ],
+  "inferred_range_over_all_settings": [
+    27,
+    27
+  ],
+  "session_gap_sweep": [
+    {
+      "session_gap_s": 30.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    },
+    {
+      "session_gap_s": 45.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    },
+    {
+      "session_gap_s": 60.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    },
+    {
+      "session_gap_s": 90.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    },
+    {
+      "session_gap_s": 120.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    },
+    {
+      "session_gap_s": 300.0,
+      "n_substantive_spans": 2,
+      "inferred_total": 27
+    }
+  ],
+  "rule_variants": {
+    "5s_pauses_only": 20,
+    "5s_plus_20s (reported)": 27,
+    "note": "Counting 5 s pauses alone omits retries that land on a sleep boundary and merge with the 15 s sleep; the laboratory calibration shows this undercounts (groupB July: 32 against a recorded 41)."
+  }
+}

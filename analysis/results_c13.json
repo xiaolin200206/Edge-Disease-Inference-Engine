@@ -1,0 +1,77 @@
+{
+  "note": "Field session ran configuration B (60 s / 15 s), the same schedule as the laboratory groupB runs, so schedule is held fixed and the camera interface is the variable of interest. Ambient conditions differ (field, outdoors) and are the principal confound; the comparison bounds the camera contribution rather than isolating it.",
+  "reports": [
+    {
+      "label": "FIELD  CSI Picamera 2  (config B, outdoor)",
+      "n_active_samples": 46575,
+      "cpu_pct": {
+        "mean": 95.2,
+        "median": 95.9,
+        "p95": 97.4,
+        "sd": 6.2
+      },
+      "latency_ms_tukey": {
+        "mean": 176.8,
+        "median": 177.8,
+        "p95": 190.7,
+        "n_after_filter": 46238
+      },
+      "die_temp_C": {
+        "mean": 75.6,
+        "peak": 81.5
+      },
+      "throttled_pct": 66.2,
+      "ram_pct_mean": 10.1
+    },
+    {
+      "label": "LAB    USB camera      (groupB_60-15_20260706_132828)",
+      "n_active_samples": 19927,
+      "cpu_pct": {
+        "mean": 97.4,
+        "median": 98.3,
+        "p95": 99.4,
+        "sd": 9.0
+      },
+      "latency_ms_tukey": {
+        "mean": 413.7,
+        "median": 411.9,
+        "p95": 424.1,
+        "n_after_filter": 18737
+      },
+      "die_temp_C": {
+        "mean": 77.0,
+        "peak": 83.2
+      },
+      "throttled_pct": 95.8,
+      "ram_pct_mean": 11.6
+    },
+    {
+      "label": "LAB    USB camera      (groupB_60-15_20260804_115108)",
+      "n_active_samples": 20494,
+      "cpu_pct": {
+        "mean": 97.6,
+        "median": 98.2,
+        "p95": 99.4,
+        "sd": 8.2
+      },
+      "latency_ms_tukey": {
+        "mean": 412.2,
+        "median": 412.8,
+        "p95": 423.1,
+        "n_after_filter": 19817
+      },
+      "die_temp_C": {
+        "mean": 77.8,
+        "peak": 82.0
+      },
+      "throttled_pct": 100.0,
+      "ram_pct_mean": 11.9
+    }
+  ],
+  "contrast": {
+    "cpu_mean_field_minus_lab_pp": -2.3,
+    "cpu_relative_pct": -2.4,
+    "latency_median_field_minus_lab_ms": -234.6,
+    "latency_relative_pct": -56.9
+  }
+}

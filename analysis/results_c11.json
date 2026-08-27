@@ -1,0 +1,391 @@
+{
+  "tau_s": 5.0,
+  "assumptions": [
+    "A1 constant v and spacing s",
+    "A2 examined iff in FoV while inferring",
+    "A3 operator does not pause (p = 0)"
+  ],
+  "coverage": [
+    {
+      "scenario": "A continuous (lab, Jul)",
+      "duty": 1.0,
+      "T_run_h": 3.04,
+      "n_cutoffs": 99,
+      "downtime_s": 495.0,
+      "downtime_min": 8.25,
+      "C_nominal": 1.0,
+      "C_effective": 0.9548,
+      "coverage_lost_to_thermal_pp": 4.52
+    },
+    {
+      "scenario": "A continuous (lab, Aug)",
+      "duty": 1.0,
+      "T_run_h": 3.0,
+      "n_cutoffs": 108,
+      "downtime_s": 540.0,
+      "downtime_min": 9.0,
+      "C_nominal": 1.0,
+      "C_effective": 0.95,
+      "coverage_lost_to_thermal_pp": 5.0
+    },
+    {
+      "scenario": "B 60/15 (lab, Jul)",
+      "duty": 0.8,
+      "T_run_h": 3.0,
+      "n_cutoffs": 41,
+      "downtime_s": 205.0,
+      "downtime_min": 3.42,
+      "C_nominal": 0.8,
+      "C_effective": 0.781,
+      "coverage_lost_to_thermal_pp": 1.9
+    },
+    {
+      "scenario": "B 60/15 (lab, Aug)",
+      "duty": 0.8,
+      "T_run_h": 3.0,
+      "n_cutoffs": 3,
+      "downtime_s": 15.0,
+      "downtime_min": 0.25,
+      "C_nominal": 0.8,
+      "C_effective": 0.7986,
+      "coverage_lost_to_thermal_pp": 0.14
+    },
+    {
+      "scenario": "B 60/15 (field, 2.25 h)",
+      "duty": 0.8,
+      "T_run_h": 2.25,
+      "n_cutoffs": 27,
+      "downtime_s": 135.0,
+      "downtime_min": 2.25,
+      "C_nominal": 0.8,
+      "C_effective": 0.7833,
+      "coverage_lost_to_thermal_pp": 1.67
+    },
+    {
+      "scenario": "C 60/30 (lab, both)",
+      "duty": 0.667,
+      "T_run_h": 3.0,
+      "n_cutoffs": 0,
+      "downtime_s": 0.0,
+      "downtime_min": 0.0,
+      "C_nominal": 0.667,
+      "C_effective": 0.667,
+      "coverage_lost_to_thermal_pp": 0.0
+    },
+    {
+      "scenario": "D 60/45 (lab, both)",
+      "duty": 0.571,
+      "T_run_h": 3.0,
+      "n_cutoffs": 0,
+      "downtime_s": 0.0,
+      "downtime_min": 0.0,
+      "C_nominal": 0.571,
+      "C_effective": 0.571,
+      "coverage_lost_to_thermal_pp": 0.0
+    },
+    {
+      "scenario": "E 60/60 (lab, both)",
+      "duty": 0.5,
+      "T_run_h": 2.99,
+      "n_cutoffs": 0,
+      "downtime_s": 0.0,
+      "downtime_min": 0.0,
+      "C_nominal": 0.5,
+      "C_effective": 0.5,
+      "coverage_lost_to_thermal_pp": 0.0
+    }
+  ],
+  "per_event_cost_grid": [
+    {
+      "spacing_m": 8.0,
+      "speed_m_s": 0.3,
+      "metres_per_5s_event": 1.5,
+      "trees_per_5s_event": 0.19
+    },
+    {
+      "spacing_m": 8.0,
+      "speed_m_s": 0.6,
+      "metres_per_5s_event": 3.0,
+      "trees_per_5s_event": 0.38
+    },
+    {
+      "spacing_m": 8.0,
+      "speed_m_s": 0.9,
+      "metres_per_5s_event": 4.5,
+      "trees_per_5s_event": 0.56
+    },
+    {
+      "spacing_m": 8.0,
+      "speed_m_s": 1.2,
+      "metres_per_5s_event": 6.0,
+      "trees_per_5s_event": 0.75
+    },
+    {
+      "spacing_m": 8.0,
+      "speed_m_s": 1.4,
+      "metres_per_5s_event": 7.0,
+      "trees_per_5s_event": 0.88
+    },
+    {
+      "spacing_m": 10.0,
+      "speed_m_s": 0.3,
+      "metres_per_5s_event": 1.5,
+      "trees_per_5s_event": 0.15
+    },
+    {
+      "spacing_m": 10.0,
+      "speed_m_s": 0.6,
+      "metres_per_5s_event": 3.0,
+      "trees_per_5s_event": 0.3
+    },
+    {
+      "spacing_m": 10.0,
+      "speed_m_s": 0.9,
+      "metres_per_5s_event": 4.5,
+      "trees_per_5s_event": 0.45
+    },
+    {
+      "spacing_m": 10.0,
+      "speed_m_s": 1.2,
+      "metres_per_5s_event": 6.0,
+      "trees_per_5s_event": 0.6
+    },
+    {
+      "spacing_m": 10.0,
+      "speed_m_s": 1.4,
+      "metres_per_5s_event": 7.0,
+      "trees_per_5s_event": 0.7
+    },
+    {
+      "spacing_m": 12.0,
+      "speed_m_s": 0.3,
+      "metres_per_5s_event": 1.5,
+      "trees_per_5s_event": 0.12
+    },
+    {
+      "spacing_m": 12.0,
+      "speed_m_s": 0.6,
+      "metres_per_5s_event": 3.0,
+      "trees_per_5s_event": 0.25
+    },
+    {
+      "spacing_m": 12.0,
+      "speed_m_s": 0.9,
+      "metres_per_5s_event": 4.5,
+      "trees_per_5s_event": 0.38
+    },
+    {
+      "spacing_m": 12.0,
+      "speed_m_s": 1.2,
+      "metres_per_5s_event": 6.0,
+      "trees_per_5s_event": 0.5
+    },
+    {
+      "spacing_m": 12.0,
+      "speed_m_s": 1.4,
+      "metres_per_5s_event": 7.0,
+      "trees_per_5s_event": 0.58
+    }
+  ],
+  "per_event_cost_range": [
+    0.12,
+    0.88
+  ],
+  "field_session_trees": {
+    "scenario": "B 60/15 (field, 2.25 h)",
+    "grid": [
+      {
+        "spacing_m": 8.0,
+        "speed_m_s": 0.3,
+        "trees_encountered": 304.0,
+        "unexamined_thermal_only": 5.1,
+        "unexamined_total_incl_schedule": 66.0
+      },
+      {
+        "spacing_m": 8.0,
+        "speed_m_s": 0.6,
+        "trees_encountered": 608.0,
+        "unexamined_thermal_only": 10.1,
+        "unexamined_total_incl_schedule": 132.0
+      },
+      {
+        "spacing_m": 8.0,
+        "speed_m_s": 0.9,
+        "trees_encountered": 911.0,
+        "unexamined_thermal_only": 15.2,
+        "unexamined_total_incl_schedule": 197.0
+      },
+      {
+        "spacing_m": 8.0,
+        "speed_m_s": 1.2,
+        "trees_encountered": 1215.0,
+        "unexamined_thermal_only": 20.2,
+        "unexamined_total_incl_schedule": 263.0
+      },
+      {
+        "spacing_m": 8.0,
+        "speed_m_s": 1.4,
+        "trees_encountered": 1418.0,
+        "unexamined_thermal_only": 23.6,
+        "unexamined_total_incl_schedule": 307.0
+      },
+      {
+        "spacing_m": 10.0,
+        "speed_m_s": 0.3,
+        "trees_encountered": 243.0,
+        "unexamined_thermal_only": 4.0,
+        "unexamined_total_incl_schedule": 53.0
+      },
+      {
+        "spacing_m": 10.0,
+        "speed_m_s": 0.6,
+        "trees_encountered": 486.0,
+        "unexamined_thermal_only": 8.1,
+        "unexamined_total_incl_schedule": 105.0
+      },
+      {
+        "spacing_m": 10.0,
+        "speed_m_s": 0.9,
+        "trees_encountered": 729.0,
+        "unexamined_thermal_only": 12.2,
+        "unexamined_total_incl_schedule": 158.0
+      },
+      {
+        "spacing_m": 10.0,
+        "speed_m_s": 1.2,
+        "trees_encountered": 972.0,
+        "unexamined_thermal_only": 16.2,
+        "unexamined_total_incl_schedule": 211.0
+      },
+      {
+        "spacing_m": 10.0,
+        "speed_m_s": 1.4,
+        "trees_encountered": 1134.0,
+        "unexamined_thermal_only": 18.9,
+        "unexamined_total_incl_schedule": 246.0
+      },
+      {
+        "spacing_m": 12.0,
+        "speed_m_s": 0.3,
+        "trees_encountered": 202.0,
+        "unexamined_thermal_only": 3.4,
+        "unexamined_total_incl_schedule": 44.0
+      },
+      {
+        "spacing_m": 12.0,
+        "speed_m_s": 0.6,
+        "trees_encountered": 405.0,
+        "unexamined_thermal_only": 6.7,
+        "unexamined_total_incl_schedule": 88.0
+      },
+      {
+        "spacing_m": 12.0,
+        "speed_m_s": 0.9,
+        "trees_encountered": 608.0,
+        "unexamined_thermal_only": 10.1,
+        "unexamined_total_incl_schedule": 132.0
+      },
+      {
+        "spacing_m": 12.0,
+        "speed_m_s": 1.2,
+        "trees_encountered": 810.0,
+        "unexamined_thermal_only": 13.5,
+        "unexamined_total_incl_schedule": 175.0
+      },
+      {
+        "spacing_m": 12.0,
+        "speed_m_s": 1.4,
+        "trees_encountered": 945.0,
+        "unexamined_thermal_only": 15.7,
+        "unexamined_total_incl_schedule": 205.0
+      }
+    ]
+  },
+  "pause_sensitivity": [
+    {
+      "p": 0.0,
+      "unexamined_thermal_only_at_1.2ms_10m": 16.2
+    },
+    {
+      "p": 0.25,
+      "unexamined_thermal_only_at_1.2ms_10m": 12.2
+    },
+    {
+      "p": 0.5,
+      "unexamined_thermal_only_at_1.2ms_10m": 8.1
+    },
+    {
+      "p": 0.75,
+      "unexamined_thermal_only_at_1.2ms_10m": 4.0
+    },
+    {
+      "p": 1.0,
+      "unexamined_thermal_only_at_1.2ms_10m": 0.0
+    }
+  ],
+  "revisit_sensitivity": [
+    {
+      "scenario": "A continuous (lab, Jul)",
+      "C_effective": 0.9548,
+      "P_never_examined_k1": 0.0452,
+      "P_never_examined_k2": 0.002,
+      "P_never_examined_k3": 0.0001
+    },
+    {
+      "scenario": "A continuous (lab, Aug)",
+      "C_effective": 0.95,
+      "P_never_examined_k1": 0.05,
+      "P_never_examined_k2": 0.0025,
+      "P_never_examined_k3": 0.0001
+    },
+    {
+      "scenario": "B 60/15 (lab, Jul)",
+      "C_effective": 0.781,
+      "P_never_examined_k1": 0.219,
+      "P_never_examined_k2": 0.048,
+      "P_never_examined_k3": 0.0105
+    },
+    {
+      "scenario": "B 60/15 (lab, Aug)",
+      "C_effective": 0.7986,
+      "P_never_examined_k1": 0.2014,
+      "P_never_examined_k2": 0.0406,
+      "P_never_examined_k3": 0.0082
+    },
+    {
+      "scenario": "B 60/15 (field, 2.25 h)",
+      "C_effective": 0.7833,
+      "P_never_examined_k1": 0.2167,
+      "P_never_examined_k2": 0.047,
+      "P_never_examined_k3": 0.0102
+    },
+    {
+      "scenario": "C 60/30 (lab, both)",
+      "C_effective": 0.667,
+      "P_never_examined_k1": 0.333,
+      "P_never_examined_k2": 0.1109,
+      "P_never_examined_k3": 0.0369
+    },
+    {
+      "scenario": "D 60/45 (lab, both)",
+      "C_effective": 0.571,
+      "P_never_examined_k1": 0.429,
+      "P_never_examined_k2": 0.184,
+      "P_never_examined_k3": 0.079
+    },
+    {
+      "scenario": "E 60/60 (lab, both)",
+      "C_effective": 0.5,
+      "P_never_examined_k1": 0.5,
+      "P_never_examined_k2": 0.25,
+      "P_never_examined_k3": 0.125
+    }
+  ],
+  "three_trees_check": {
+    "claim": "a 5 s suspension costs the walking operator three trees",
+    "implied_speed_at_10_m_spacing_m_s": 6.0,
+    "comment": "That is roughly 22 km/h, which is a sprint, not an inspection walk. At a realistic 1.2 m/s and 10 m spacing a 5 s suspension costs 0.6 of a tree; the sentence should be restated per round rather than per event.",
+    "trees_per_event_at_1.2_m_s_10_m": 0.6,
+    "field_round_thermal_cost_trees_at_1.2_m_s_10_m": 16.2
+  }
+}

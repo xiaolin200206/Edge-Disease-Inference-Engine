@@ -1,0 +1,206 @@
+{
+  "metric": "mAP@0.5",
+  "shared_seeds": [
+    0,
+    1,
+    2
+  ],
+  "per_architecture_spread": [
+    {
+      "architecture": "YOLOv8s",
+      "n_seeds": 5,
+      "mean": 0.4146,
+      "sd": 0.0452,
+      "range": [
+        0.3483,
+        0.4662
+      ],
+      "spread": 0.1179
+    },
+    {
+      "architecture": "YOLOv11s",
+      "n_seeds": 3,
+      "mean": 0.4111,
+      "sd": 0.0351,
+      "range": [
+        0.3706,
+        0.4317
+      ],
+      "spread": 0.0611
+    },
+    {
+      "architecture": "RT-DETR-l",
+      "n_seeds": 3,
+      "mean": 0.453,
+      "sd": 0.015,
+      "range": [
+        0.4359,
+        0.4638
+      ],
+      "spread": 0.0279
+    }
+  ],
+  "paired_comparisons": [
+    {
+      "pair": "YOLOv11s - YOLOv8s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.0828,
+        0.037,
+        -0.0545
+      ],
+      "mean_difference": 0.0218,
+      "sd_difference": 0.0699,
+      "ci95_difference": [
+        -0.1519,
+        0.1954
+      ],
+      "paired_t": 0.539,
+      "p_paired_t": 0.6437,
+      "wilcoxon_W": 2.0,
+      "p_wilcoxon_exact": 0.75,
+      "p_exact_sign_flip": 0.75,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 0.311,
+      "minimum_detectable_difference_alpha05": 0.1737
+    },
+    {
+      "pair": "RT-DETR-l - YOLOv8s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.111,
+        0.0691,
+        0.0108
+      ],
+      "mean_difference": 0.0636,
+      "sd_difference": 0.0503,
+      "ci95_difference": [
+        -0.0614,
+        0.1886
+      ],
+      "paired_t": 2.19,
+      "p_paired_t": 0.1599,
+      "wilcoxon_W": 0.0,
+      "p_wilcoxon_exact": 0.25,
+      "p_exact_sign_flip": 0.25,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 1.264,
+      "minimum_detectable_difference_alpha05": 0.125
+    },
+    {
+      "pair": "RT-DETR-l - YOLOv11s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.0282,
+        0.0321,
+        0.0653
+      ],
+      "mean_difference": 0.0419,
+      "sd_difference": 0.0204,
+      "ci95_difference": [
+        -0.0088,
+        0.0925
+      ],
+      "paired_t": 3.557,
+      "p_paired_t": 0.0708,
+      "wilcoxon_W": 0.0,
+      "p_wilcoxon_exact": 0.25,
+      "p_exact_sign_flip": 0.25,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 2.054,
+      "minimum_detectable_difference_alpha05": 0.0506
+    }
+  ],
+  "paired_comparisons_map5095": [
+    {
+      "pair": "YOLOv11s - YOLOv8s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.0235,
+        0.0004,
+        -0.0143
+      ],
+      "mean_difference": 0.0032,
+      "sd_difference": 0.0191,
+      "ci95_difference": [
+        -0.0441,
+        0.0505
+      ],
+      "paired_t": 0.291,
+      "p_paired_t": 0.7985,
+      "wilcoxon_W": 2.0,
+      "p_wilcoxon_exact": 0.75,
+      "p_exact_sign_flip": 0.75,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 0.168,
+      "minimum_detectable_difference_alpha05": 0.0473
+    },
+    {
+      "pair": "RT-DETR-l - YOLOv8s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.0806,
+        0.0753,
+        0.0431
+      ],
+      "mean_difference": 0.0663,
+      "sd_difference": 0.0203,
+      "ci95_difference": [
+        0.0159,
+        0.1167
+      ],
+      "paired_t": 5.661,
+      "p_paired_t": 0.0298,
+      "wilcoxon_W": 0.0,
+      "p_wilcoxon_exact": 0.25,
+      "p_exact_sign_flip": 0.25,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 3.269,
+      "minimum_detectable_difference_alpha05": 0.0504
+    }
+  ],
+  "uncertainty_decomposition": {
+    "training_stochasticity": {
+      "definition": "sd of aggregate mAP@0.5 across independently seeded runs of one architecture, same validation set",
+      "yolov8s_sd_5_seeds": 0.0452,
+      "yolov8s_range_5_seeds": 0.1179,
+      "implied_95pct_interval_width": 0.177
+    },
+    "validation_sample_uncertainty": {
+      "definition": "95% bootstrap interval for one checkpoint over 2,000 image-level resamples of the 126 validation images (Section 4.2.2)",
+      "ci95": [
+        0.286,
+        0.621
+      ],
+      "width": 0.335
+    },
+    "ratio_validation_to_training": 1.89,
+    "nominal_architecture_difference": 0.017,
+    "reading": "The validation-sample interval is wider than the seed interval by the ratio above, and both exceed the nominal architecture difference. The two are independent and are not additive; neither alone leaves room to resolve 0.017."
+  }
+}
