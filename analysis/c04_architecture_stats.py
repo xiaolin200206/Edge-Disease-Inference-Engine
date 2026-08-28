@@ -94,7 +94,11 @@ def paired_block(a_name, b_name, table, seeds):
         "sd_difference": round(float(sd), 4),
         "ci95_difference": [round(float(ci[0]), 4), round(float(ci[1]), 4)],
         "paired_t": round(float(t), 3),
-        "p_paired_t": round(float(p_t), 4),
+        # Six decimals, not four. The paper quotes three, and a value stored
+        # at four can round differently from the true one when a reader
+        # formats it again: p = 0.7985388 stores as 0.7985, which reformats
+        # to 0.798 while the true value gives 0.799.
+        "p_paired_t": round(float(p_t), 6),
         "wilcoxon_W": None if math.isnan(w) else float(w),
         "p_wilcoxon_exact": None if math.isnan(p_w) else round(float(p_w), 4),
         "p_exact_sign_flip": round(float(p_perm), 4),

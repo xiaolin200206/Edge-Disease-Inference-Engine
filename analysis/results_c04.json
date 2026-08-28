@@ -60,7 +60,7 @@
         0.1954
       ],
       "paired_t": 0.539,
-      "p_paired_t": 0.6437,
+      "p_paired_t": 0.643681,
       "wilcoxon_W": 2.0,
       "p_wilcoxon_exact": 0.75,
       "p_exact_sign_flip": 0.75,
@@ -88,7 +88,7 @@
         0.1886
       ],
       "paired_t": 2.19,
-      "p_paired_t": 0.1599,
+      "p_paired_t": 0.159914,
       "wilcoxon_W": 0.0,
       "p_wilcoxon_exact": 0.25,
       "p_exact_sign_flip": 0.25,
@@ -116,7 +116,7 @@
         0.0925
       ],
       "paired_t": 3.557,
-      "p_paired_t": 0.0708,
+      "p_paired_t": 0.070756,
       "wilcoxon_W": 0.0,
       "p_wilcoxon_exact": 0.25,
       "p_exact_sign_flip": 0.25,
@@ -146,7 +146,7 @@
         0.0505
       ],
       "paired_t": 0.291,
-      "p_paired_t": 0.7985,
+      "p_paired_t": 0.798539,
       "wilcoxon_W": 2.0,
       "p_wilcoxon_exact": 0.75,
       "p_exact_sign_flip": 0.75,
@@ -174,7 +174,7 @@
         0.1167
       ],
       "paired_t": 5.661,
-      "p_paired_t": 0.0298,
+      "p_paired_t": 0.029813,
       "wilcoxon_W": 0.0,
       "p_wilcoxon_exact": 0.25,
       "p_exact_sign_flip": 0.25,
@@ -202,7 +202,7 @@
         0.0885
       ],
       "paired_t": 10.73,
-      "p_paired_t": 0.0086,
+      "p_paired_t": 0.008575,
       "wilcoxon_W": 0.0,
       "p_wilcoxon_exact": 0.25,
       "p_exact_sign_flip": 0.25,
