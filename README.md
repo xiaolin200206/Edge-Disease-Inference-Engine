@@ -7,6 +7,8 @@ Code, telemetry, and audit tools accompanying the manuscript:
 > Lin Ding Shan, Institute of Computer Science and Digital Innovation, UCSI University
 > ORCID [0009-0009-6031-8479](https://orcid.org/0009-0009-6031-8479)
 > Under review, *Smart Agricultural Technology*, 2026 (ATECH-D-26-02454, revision 2).
+>
+> Dataset and weights: [https://doi.org/10.5281/zenodo.22138420](https://doi.org/10.5281/zenodo.22138420) (CC BY 4.0)
 
 This repository contains (1) the offline field-deployment inference engine, (2) the
 dataset-integrity audit used to detect, quantify and correct a train/validation leak,
@@ -32,9 +34,9 @@ this design. The minimum difference the design could have detected is 0.174,
 against the 0.017 the original submission attributed to architecture. See
 `analysis/c04_architecture_stats.py`.
 
-**The 27 field cut-offs are insensitive to the rule that infers them.** Every
-inter-sample gap longer than 1 s in the 2.25 h session falls into one of three
-tight clusters — 5.2-5.3 s (n = 20), 15.2-15.4 s (n = 100) and 20.2-20.3 s
+**The 27 field cut-offs are insensitive to the rule that infers them.** All 127
+inter-sample gaps longer than 1 s in the 2.25 h session fall into one of three
+tight clusters — 5.18-5.29 s (n = 20), 15.20-15.35 s (n = 100) and 20.20-20.26 s
 (n = 7) — with nothing at all between 5.6 s and 15.0 s or between 21 s and 60 s.
 Four hundred combinations of the band edges were swept; all four hundred return
 27, and 240 of them still reproduce every laboratory event-log count exactly.
@@ -42,6 +44,17 @@ The count is still an inference and is labelled as one throughout, but its
 uncertainty is interpretive rather than numerical: excluding merged 20 s pauses
 would give 20, which is the floor. See
 `analysis/c12_field_event_sensitivity.py`.
+
+> **Correction, revision 2c.** The gap histograms `c12_field_event_sensitivity.py`
+> emitted were computed over the whole log while the counts beside them were
+> computed over the substantive session, so the 15 s cluster appeared as 140 in
+> `results_c12.json` against the 100 the manuscript and Fig. 12 report. The 5 s
+> and 20 s clusters were unaffected, since all of those pauses fall inside the
+> substantive session. This is the same pooling error corrected in c13 at
+> revision 2b. The script now segments before it bins, emits the whole-log
+> distribution separately under `whole_log_for_reference`, and
+> `reproduce/verify_tables.py` asserts the session-scoped cluster counts and
+> their ranges. No number in the manuscript changed.
 
 **The laboratory USB camera configuration is conservative relative to the field
 CSI one.** Both ran configuration B, so the schedule is held fixed. Over
@@ -51,6 +64,18 @@ rounds recorded 97.4% and 97.6%, 77.0 and 77.8 degrees C, and peaks of 83.2 and
 82.0 degrees C. The laboratory setup sits at or above the field one on every
 load and thermal indicator, which is the direction that matters for results that
 are limits rather than optima. See `analysis/c13_camera_interface.py`.
+
+> **Correction, revision 2b.** `analysis/c13_camera_interface.py` originally
+> summarised the field log without splitting it into its five logging runs, so
+> the JSON it emitted pooled the substantive 2.25 h session with four short
+> warm-up and restart fragments. Pooling diluted the throttling fraction from
+> 91.2% to 66.2% and shifted the mean die temperature (77.0 to 75.6 C) and the
+> median latency (173.0 to 177.8 ms). The manuscript reports the substantive
+> session throughout; the script now applies the same segmentation rule used in
+> `c12_field_event_sensitivity.py` and `reproduce/verify_tables.py`, emits the
+> whole-log and per-session summaries alongside it, and `verify_tables.py`
+> asserts the substantive-session figures so the two cannot drift apart again.
+> No number in the manuscript changed.
 
 **The leakage threshold is not doing the work.** Of the 32 validation images
 Table 1 removes, 20 are implicated at exact perceptual identity (Hamming
@@ -76,6 +101,24 @@ airflow and fan speed were not instrumented in any round; the die temperature at
 `SYSTEM_START` is reported as the available proxy and is labelled as a proxy.
 The interval since the previous run is tabulated alongside it, because that is
 what drives the difference between rounds.
+
+**The audit was extended inside each partition, and found something.** The
+leakage check answers "does an image cross the train/validation boundary?", so a
+file duplicated inside one partition is invisible to it by construction. Running
+the same hashes within each partition finds 21 groups of byte-identical images in
+train and 3 in valid, so the 1,121 exported files are 1,096 distinct images. Two
+of the validation groups pair an annotated original with an unannotated
+duplicate, so one image is counted once as an instance and once as background.
+No conclusion changes and the duplicates are retained in the archive, because the
+reported numbers were computed on them. See `audit/check_within_split_dupes.py`.
+
+**The checkpoint inventory was missing two rows.** `checkpoint_metadata.csv` was
+assembled by hand and omitted RT-DETR-l seeds 1 and 2, although both runs appear
+under `data/training_logs/multiseed/` and both are in Table 2. Section 3.5 offers
+that file as the evidence for the single-environment claim, so a gap in it is a
+gap in the claim. `reproduce/extract_checkpoint_metadata.py` now regenerates the
+file from the checkpoints; run it against the released weights rather than
+editing the CSV by hand.
 
 **Five figures were added** (`figures/fig8` through `figures/fig12`),
 regenerated by `analysis/make_revision2_figures.py`.
@@ -115,7 +158,7 @@ nothing changed but the seed. They hold one and two validation instances.
 **The field log did not predate the duty-cycle build.** The first release described
 `data/field_test.csv` as having been collected under continuous inference with a build
 carrying neither the scheduler nor the cut-off. Its own timestamps disprove that: the
-log contains 138 pauses of 15.2 s at a median spacing of 75.1 s, which is the
+log contains 140 pauses of 15.2 s at a median spacing of 75.1 s, which is the
 60 s / 15 s period of configuration B, and 20 pauses of 5.2 s occurring only between
 79.3 and 81.5 degrees C, which is the cut-off retry. Counting 5 s and 20 s pauses
 together — the rule that reproduces the laboratory event-log counts exactly (99, 108,
@@ -185,57 +228,58 @@ pass and no retraining.
 
 ---
 
-## Read this first: what is and is not reproducible here
+## Read this first: what the release covers
 
-The paper reports two kinds of result, and they are not equally checkable.
+**As of revision 2 the dataset and the trained weights are public.** They are
+archived at [https://doi.org/10.5281/zenodo.22138420](https://doi.org/10.5281/zenodo.22138420) — 1,121 exported images with three label sets, the
+leak-free validation partition, the source-level re-partition of Section 4.2.4,
+and one checkpoint per run in Table 2. Every detection result in the paper can
+now be regenerated, not merely inspected.
 
-**Fully reproducible from this repository, with no additional assets.**
-Everything that rests on telemetry rather than on imagery, which is more of the paper
-than the split first suggests:
+Earlier releases of this repository stated that the detection results were
+"procedurally auditable but not independently reproducible" because the imagery
+and weights were withheld as commercialisation assets. That is no longer the
+case. The competing-interest declaration stands — the author does hold a
+financial interest in those assets — but the assets themselves are released, so
+the findings can be checked by anyone.
 
-- the duty-cycle thermal characterisation across both rounds, and the cut-off counts
-  and coverage figures the operational recommendation rests on (Table 3);
-- the SoC power measurement and every derived quantity in Table 4, including the
-  energy-per-inference result (§4.4);
-- the field-session analysis: session segmentation, latency, throttling fraction and
-  the calibrated cut-off inference (§5.1, §5.4);
-- Figures 5, 6 and 7, redrawn from the released telemetry;
-- Figures 2 and 3, whose values are carried in the plotting script itself.
+Two things the release does **not** do, and which no amount of data sharing
+could:
 
-The raw telemetry is released unfiltered; one command recomputes every value in each
-case. `verify_tables.py` checks the numbers that appear in the paper against the logs.
+- It does not supply an independent, source-level held-out test partition. None
+  was constructed, and publishing the existing partitions does not create one.
+  Every accuracy figure here remains a validation figure.
+- It does not make the small classes interpretable. Two classes hold one and two
+  validation instances; releasing them changes nothing about what they can
+  support.
 
-**Not reproducible from this repository.**
-Everything requiring the durian images or the trained weights: the leakage
-quantification, the architecture comparison including the RT-DETR-l seeds, the seed and
-bootstrap analyses, the leak-free retraining, and the taxonomy repair. The dataset and
-weights are assets of an ongoing commercialisation effort and are not released.
+The dataset is published with its defects documented rather than corrected: the
+train/validation leak, the within-partition duplicates, the 565 unannotated
+training images, and the near-zero scene diversity behind the rare classes are
+all listed in the archive's README. The point of releasing a flawed dataset
+alongside the audit that found the flaws is that the audit becomes checkable.
 
-For those results the repository provides the *procedure* rather than the *evidence*.
-Every script runs against any other detection dataset in YOLO format, and the leakage
-inventory is published **as hashes**, so the specific leak reported in the paper can be
-checked by anyone holding the same images — or the same export — without the images
-being distributed here.
-
----
+Everything resting on telemetry rather than imagery was already reproducible and
+remains so: the duty-cycle thermal characterisation across both rounds, the SoC
+power measurement, the field-session analysis, and the figures drawn from them.
 
 ## What reproduces what
 
-| Paper element | Script / data | Needs the dataset? |
+| Paper element | Script / data | Needs the archive? |
 |---|---|---|
-| **§4.1** Integrity audit — 1 byte-identical + 117 near-duplicate pairs | `audit/check_leakage_leafrot.py` → `audit/leakage_report.csv` | yes |
-| **§4.1** Source-component reconstruction, threshold sweep, ≈750 sources behind 1,121 images | `audit/regroup_split.py --report-only` | yes |
-| **Table 1** Leak-free re-evaluation, model held fixed | `reproduce/clean_val_and_revalidate.py` | yes |
-| **Table 2** Architecture comparison across seeds and families | `training/multiseed.py`, `training/run_rtdetr.py`, `training/collect_table2.py` | yes |
-| **Supplementary Table S3** (S4.2.2) Bootstrap confidence intervals, paired across checkpoints | `audit/bootstrap_ap.py` | yes |
-| **§4.4, Table 4** SoC power by duty-cycle configuration | `reproduce/analyse_power.py` + `data/power_round3/` | **no** |
-| **Table 2, S4** RT-DETR-l across three seeds | `training/train_rtdetr_seeds.py`, `reproduce/val_rtdetr.py` | yes |
-| **§4.2.4** Retraining on the leak-free partition | `audit/regroup_split.py` then `training/run_m1.py` | yes |
+| **§4.1** Integrity audit — 1 byte-identical + 117 near-duplicate pairs | `audit/check_leakage_leafrot.py` → `audit/leakage_report.csv` | yes (archived) |
+| **§4.1** Source-component reconstruction, threshold sweep, ≈750 sources behind 1,121 images | `audit/regroup_split.py --report-only` | yes (archived) |
+| **Table 1** Leak-free re-evaluation, model held fixed | `reproduce/clean_val_and_revalidate.py` | yes (archived) |
+| **Table 2** Architecture comparison across seeds and families | `training/multiseed.py`, `training/run_rtdetr.py`, `training/collect_table2.py` | yes (archived) |
+| **Supplementary Table S3** (S4.2.2) Bootstrap confidence intervals, paired across checkpoints | `audit/bootstrap_ap.py` | yes (archived) |
+| **§4.4, Table 6** SoC power by duty-cycle configuration | `reproduce/analyse_power.py` + `data/power_round3/` | **no** |
+| **Table 2, S4** RT-DETR-l across three seeds | `training/train_rtdetr_seeds.py`, `reproduce/val_rtdetr.py` | yes (archived) |
+| **§4.2.4** Retraining on the leak-free partition | `audit/regroup_split.py` then `training/run_m1.py` | yes (archived) |
 | **Table 3** Duty-cycle thermal, both rounds | `reproduce/reproduce_table3.py` + `data/thermal_telemetry*/` | **no** |
-| **§3.2** Taxonomy repair (`Early_Blight`/`early_blight`, nc 8 → 7) | `reproduce/remove_class_and_reindex.py` | yes |
+| **§3.2** Taxonomy repair (`Early_Blight`/`early_blight`, nc 8 → 7) | `reproduce/remove_class_and_reindex.py` | yes (archived) |
 | **§5.1, §5.4** Field session: segmentation, latency, throttling, inferred cut-offs | `reproduce/field_log_intervals.py` + `data/field_test.csv` | **no** |
-| **Figs. 2, 3** Per-class AP and confusion matrix, pre-cleanup taxonomy | `reproduce/make_figures_2_3.py` | **no** |
-| **Figs. 5, 6, 7** Thermal traces, transitions, latency | `reproduce/make_figures.py` + `data/thermal_telemetry*/` | **no** |
+| **Figs. 4, 5** Per-class AP and confusion matrix, pre-cleanup taxonomy (files `fig2`, `fig3`) | `reproduce/make_figures_2_3.py` | **no** |
+| **Figs. 7, 8, 9** Thermal traces, transitions, latency (files `fig5`, `fig6`, `fig7`) | `reproduce/make_figures.py` + `data/thermal_telemetry*/` | **no** |
 | **§5** Field deployment system | `deployment/detection.py` | weights only |
 
 ---
@@ -276,6 +320,9 @@ audit/
   add_hashes.py              hash inventory for the released report
   phash_distribution.py      full cross-partition distance distribution;
                              needs the imagery, so cannot run from this repo
+  check_within_split_dupes.py
+                             duplicates INSIDE a partition, which the
+                             cross-boundary audit cannot see by construction
   regroup_split.py           source-component reconstruction and leak-free split
   bootstrap_ap.py            image-level bootstrap CIs on per-class AP
   leakage_report.csv         released inventory, hashes only
@@ -284,6 +331,29 @@ training/
   run_rtdetr.py              third architecture family, identical configuration
   run_m1.py                  retrain on the leak-free partition
   collect_table2.py          evaluate every run; spread and paired differences
+## Figure and table numbering
+
+The manuscript numbers figures and tables in order of first citation. The file
+names in `figures/` keep the working numbers they were generated under and are
+**not** renamed, so that every previously released artefact resolves. Map:
+
+| Manuscript | File | Manuscript | File |
+|---|---|---|---|
+| Fig. 1 | (field photograph, not in repository) | Fig. 7 | `fig5_thermal_traces` |
+| Fig. 2 | `fig8_dataset_flow` | Fig. 8 | `fig6_transitions` |
+| Fig. 3 | `fig9_phash_evidence` | Fig. 9 | `fig7_latency` |
+| Fig. 4 | `fig2_per_class_ap` | Fig. 10 | `fig12_coverage` |
+| Fig. 5 | `fig3_confusion` | Fig. 11 | `fig10_power_boundary` |
+| Fig. 6 | `fig4_phomopsis` | Fig. 12 | `fig11_field_gap_structure` |
+
+Tables 1, 2 and 3 keep their revision-1 numbers. Revision 2 adds Table 4 (the
+dataset-differences table, Section 4.2.3), Table 5 (per-run thermal conditions,
+Section 4.3) and Table 7 (demonstrated against unvalidated, Section 5.4). The
+SoC power table introduced in revision 1 is **Table 6** in the revision-2
+manuscript; some check labels in `reproduce/verify_tables.py` still call it
+Table 6, which is correct. Supplementary Table S6 carries the architecture
+statistics.
+
 analysis/
   c04_architecture_stats.py  paired tests across architectures; power statement
   c09_thermal_conditions.py  per-run conditions for all fifteen thermal runs
@@ -291,18 +361,21 @@ analysis/
   c12_field_event_sensitivity.py
                              threshold sensitivity of the inferred cut-off count
   c13_camera_interface.py    field CSI against laboratory USB, schedule matched
-  make_revision2_figures.py  Figs. 8-12
+  make_revision2_figures.py  Figs. 2, 3, 10, 11, 12 (files fig8-fig12)
   results_*.json             the outputs the manuscript's numbers were taken from
 reproduce/
   reproduce_table3.py        duty-cycle table from raw telemetry, both rounds
-  analyse_power.py           Table 4, SoC power by duty cycle (third round)
+  analyse_power.py           Table 6, SoC power by duty cycle (third round)
   val_rtdetr.py              RT-DETR-l three-seed validation
   verify_tables.py           checks the paper's telemetry numbers against the logs
-  make_figure_4.py           Fig. 4
+  extract_checkpoint_metadata.py
+                             rebuilds checkpoint_metadata.csv from the
+                             checkpoints themselves
+  make_figure_4.py           Fig. 6 (file fig4)
   field_log_intervals.py     field session: calibrates the cut-off inference
                              against the laboratory event logs, then applies it
-  make_figures.py            Figs. 5, 6, 7
-  make_figures_2_3.py        Figs. 2, 3; checks its own column totals
+  make_figures.py            Figs. 7, 8, 9 (files fig5, fig6, fig7)
+  make_figures_2_3.py        Figs. 4, 5 (files fig2, fig3); checks its own column totals
   clean_val_and_revalidate.py
   remove_class_and_reindex.py
   count_classes.py
@@ -390,23 +463,20 @@ check; telemetry from such a run must not be reported.
 
 ## Data availability
 
-The artefacts of this study fall into two categories, and the distinction is
-material enough that revision 2 states it in the paper as well.
+All artefacts of this study are public.
 
-**Independently reproducible.** The thermal characterisation, the field-log
-analysis, the power measurement, the coverage model and the cut-off-inference
-calibration. All telemetry, event logs, power samples and analysis scripts are
-here, and each result can be re-executed end to end from them.
+**Telemetry and analysis** — thermal logs for all five duty-cycle configurations
+across three rounds, the power samples, the field-deployment log, and every
+analysis and audit script — are in this repository.
 
-**Procedurally auditable but not independently reproducible.** Every detection
-result. Training arguments, per-epoch histories, checkpoint metadata, the audit
-inventory by MD5 and perceptual hash, and the evaluation and audit scripts are
-released, so the procedure can be inspected and criticised. The durian disease
-image dataset and the trained model weights are proprietary assets of an ongoing
-commercialisation effort and are not released, so the numbers cannot be
-regenerated. A reader can check how the audit was performed but must take its
-inputs on trust — which is worth saying plainly in a repository whose subject is
-dataset integrity.
+**Imagery and weights** are archived at [https://doi.org/10.5281/zenodo.22138420](https://doi.org/10.5281/zenodo.22138420) under CC BY 4.0: the
+1,121 exported images, three label sets spanning the taxonomy revisions of
+Section 3.2, the leak-free validation partition behind Table 1, the source-level
+re-partition of Section 4.2.4, and the checkpoints behind Table 2 and Table 1.
+The archive carries a MANIFEST and MD5 checksums so every file can be verified.
+
+The durian images were collected by collaborating growers who have given written
+permission for their public release.
 
 ## Licence
 

@@ -27,57 +27,145 @@
       }
     ]
   },
-  "gap_histogram_4_to_7s": [
-    {
-      "bin": [
-        5.1,
-        5.2
-      ],
-      "n": 14
+  "scope": "Histograms and cluster summaries below are computed on the substantive session (the longest span after segmentation), which is what the manuscript reports. Whole-log equivalents are given under 'whole_log_for_reference'.",
+  "substantive_session": {
+    "n_samples": 33802,
+    "duration_h": 2.25,
+    "gap_histogram_4_to_7s": [
+      {
+        "bin": [
+          5.1,
+          5.2
+        ],
+        "n": 14
+      },
+      {
+        "bin": [
+          5.2,
+          5.3
+        ],
+        "n": 6
+      }
+    ],
+    "gap_histogram_14_to_17s": [
+      {
+        "bin": [
+          15.1,
+          15.2
+        ],
+        "n": 4
+      },
+      {
+        "bin": [
+          15.2,
+          15.3
+        ],
+        "n": 93
+      },
+      {
+        "bin": [
+          15.3,
+          15.4
+        ],
+        "n": 3
+      }
+    ],
+    "gap_histogram_19_to_22s": [
+      {
+        "bin": [
+          20.2,
+          20.3
+        ],
+        "n": 7
+      }
+    ],
+    "cluster_5s": {
+      "n": 20,
+      "min_s": 5.176,
+      "max_s": 5.29
     },
-    {
-      "bin": [
-        5.2,
-        5.3
-      ],
-      "n": 6
-    }
-  ],
-  "gap_histogram_19_to_22s": [
-    {
-      "bin": [
-        20.2,
-        20.3
-      ],
-      "n": 7
-    }
-  ],
-  "gap_histogram_14_to_17s": [
-    {
-      "bin": [
-        15.1,
-        15.2
-      ],
-      "n": 5
+    "cluster_15s": {
+      "n": 100,
+      "min_s": 15.198,
+      "max_s": 15.354
     },
-    {
-      "bin": [
-        15.2,
-        15.3
-      ],
-      "n": 132
+    "cluster_20s": {
+      "n": 7,
+      "min_s": 20.204,
+      "max_s": 20.263
     },
-    {
-      "bin": [
-        15.3,
-        15.4
-      ],
-      "n": 3
-    }
-  ],
-  "n_gaps_total": 46574,
-  "n_gaps_between_6_and_14s": 0,
-  "n_gaps_between_21_and_60s": 0,
+    "n_gaps_over_1s": 127,
+    "n_gaps_between_6_and_14s": 0,
+    "n_gaps_between_21_and_60s": 0
+  },
+  "whole_log_for_reference": {
+    "gap_histogram_4_to_7s": [
+      {
+        "bin": [
+          5.1,
+          5.2
+        ],
+        "n": 14
+      },
+      {
+        "bin": [
+          5.2,
+          5.3
+        ],
+        "n": 6
+      }
+    ],
+    "gap_histogram_14_to_17s": [
+      {
+        "bin": [
+          15.1,
+          15.2
+        ],
+        "n": 5
+      },
+      {
+        "bin": [
+          15.2,
+          15.3
+        ],
+        "n": 132
+      },
+      {
+        "bin": [
+          15.3,
+          15.4
+        ],
+        "n": 3
+      }
+    ],
+    "gap_histogram_19_to_22s": [
+      {
+        "bin": [
+          20.2,
+          20.3
+        ],
+        "n": 7
+      }
+    ],
+    "cluster_5s": {
+      "n": 20,
+      "min_s": 5.176,
+      "max_s": 5.29
+    },
+    "cluster_15s": {
+      "n": 140,
+      "min_s": 15.198,
+      "max_s": 15.354
+    },
+    "cluster_20s": {
+      "n": 7,
+      "min_s": 20.204,
+      "max_s": 20.263
+    },
+    "n_gaps_total": 46574,
+    "n_gaps_between_6_and_14s": 0,
+    "n_gaps_between_21_and_60s": 0
+  },
   "band_sweep_n_settings": 400,
   "band_sweep_n_calibration_exact": 240,
   "inferred_range_over_calibration_exact_settings": [

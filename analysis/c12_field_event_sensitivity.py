@@ -137,18 +137,58 @@ def main():
                         "inferred_total": base_total, "spans": base_spans}}
 
     # ------------------------------------------- 1. empirical distribution ---
-    def window(lo, hi, step):
+    # The manuscript (Section 5.1, Fig. 12) describes the SUBSTANTIVE SESSION, not
+    # the pooled log, so the distribution is computed on the same segmentation the
+    # count uses. The whole-log distribution is emitted alongside it, because the
+    # two differ: the four short warm-up and restart fragments contribute a further
+    # 40 scheduled-sleep pauses and no cut-off retries, so pooling turns the 15 s
+    # cluster from 100 into 140 while leaving the 5 s and 20 s clusters unchanged.
+    # (This is the same pooling error corrected in c13_camera_interface.py.)
+    spans = [(a, z) for a, z in field_spans(ts, 60.0) if z - a >= 1000]
+    a_sub, z_sub = max(spans, key=lambda s: s[1] - s[0])
+    g_sub = g[a_sub:z_sub]
+
+    def window(arr, lo, hi, step):
         edges = np.arange(lo, hi + step, step)
-        h, _ = np.histogram(g, bins=edges)
+        h, _ = np.histogram(arr, bins=edges)
         return [{"bin": [round(float(edges[i]), 2), round(float(edges[i + 1]), 2)],
                  "n": int(h[i])} for i in range(len(h)) if h[i]]
 
-    out["gap_histogram_4_to_7s"] = window(4.0, 7.0, 0.1)
-    out["gap_histogram_19_to_22s"] = window(19.0, 22.0, 0.1)
-    out["gap_histogram_14_to_17s"] = window(14.0, 17.0, 0.1)
-    out["n_gaps_total"] = int(len(g))
-    out["n_gaps_between_6_and_14s"] = int(((g > 6.0) & (g < 14.0)).sum())
-    out["n_gaps_between_21_and_60s"] = int(((g > 21.0) & (g < 60.0)).sum())
+    def cluster(arr, lo, hi):
+        v = arr[(arr > lo) & (arr < hi)]
+        if not len(v):
+            return None
+        return {"n": int(len(v)), "min_s": round(float(v.min()), 3),
+                "max_s": round(float(v.max()), 3)}
+
+    out["scope"] = ("Histograms and cluster summaries below are computed on the "
+                    "substantive session (the longest span after segmentation), "
+                    "which is what the manuscript reports. Whole-log equivalents "
+                    "are given under 'whole_log_for_reference'.")
+    out["substantive_session"] = {
+        "n_samples": int(z_sub - a_sub + 1),
+        "duration_h": round(float(ts[z_sub] - ts[a_sub]) / 3600, 2),
+        "gap_histogram_4_to_7s": window(g_sub, 4.0, 7.0, 0.1),
+        "gap_histogram_14_to_17s": window(g_sub, 14.0, 17.0, 0.1),
+        "gap_histogram_19_to_22s": window(g_sub, 19.0, 22.0, 0.1),
+        "cluster_5s": cluster(g_sub, 4.0, 7.0),
+        "cluster_15s": cluster(g_sub, 14.0, 17.0),
+        "cluster_20s": cluster(g_sub, 19.0, 22.0),
+        "n_gaps_over_1s": int((g_sub > 1.0).sum()),
+        "n_gaps_between_6_and_14s": int(((g_sub > 6.0) & (g_sub < 14.0)).sum()),
+        "n_gaps_between_21_and_60s": int(((g_sub > 21.0) & (g_sub < 60.0)).sum()),
+    }
+    out["whole_log_for_reference"] = {
+        "gap_histogram_4_to_7s": window(g, 4.0, 7.0, 0.1),
+        "gap_histogram_14_to_17s": window(g, 14.0, 17.0, 0.1),
+        "gap_histogram_19_to_22s": window(g, 19.0, 22.0, 0.1),
+        "cluster_5s": cluster(g, 4.0, 7.0),
+        "cluster_15s": cluster(g, 14.0, 17.0),
+        "cluster_20s": cluster(g, 19.0, 22.0),
+        "n_gaps_total": int(len(g)),
+        "n_gaps_between_6_and_14s": int(((g > 6.0) & (g < 14.0)).sum()),
+        "n_gaps_between_21_and_60s": int(((g > 21.0) & (g < 60.0)).sum()),
+    }
 
     # ------------------------------------------------- 2. band-edge sweep ---
     sweep = []

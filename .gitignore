@@ -1,0 +1,16 @@
+
+__pycache__/
+*.pyc
+zenodo/
+zenodo_upload/
+_release_inventory/
+_backup_before_update/
+repo-git/
+
+__pycache__/
+*.pyc
+zenodo/
+zenodo_upload/
+_release_inventory/
+_backup_before_update/
+repo-git/

@@ -22,6 +22,10 @@ roboflow:
   url: https://app.roboflow.com/limagriculture/leave_disease-rvavl/2
   version: 2
   workspace: limagriculture
+# NOTE: Roboflow emits a `test` key by default. This export contains no
+# test images and none were used; the study reports no held-out test
+# partition (see Limitations, item 8). The key is retained so the file
+# matches the export it came from.
 test: ../../Leave_disease/test/images
 train: ../../Leave_disease/train/images
 val: ../../Leave_disease/valid_clean/images

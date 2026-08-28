@@ -13,9 +13,10 @@ assertion fails, so it can be run in CI.
 
 Covered:
     Table 3      duty-cycle thermal characterisation, both rounds
-    Table 4      SoC power, third round
+    Table 6      SoC power, third round (Table 4 before the revision-2b renumbering)
     Section 4.3  cut-off counts, downtime, effective coverage
     Section 4.4  mean-power fall, energy-per-inference rise, active-power separation
+    Section 4.3  camera-interface comparison (field session, not the pooled log)
     Section 5.1  field log: run segmentation, duration, throttling, latency
     Section 5.4  field log: cut-off inference and its calibration
 
@@ -134,10 +135,13 @@ def verify_table3():
                 check("§4.3 round 2 A coverage (%)", round(effective, 1), 95.0, 0.05)
 
 
-# ---------------------------------------------------------------- Table 4
+# -------------------------------------------- Table 6 (SoC power, round 3)
 
 def verify_table4():
-    """SoC power by configuration, and the two results drawn from it (§4.4)."""
+    """SoC power by configuration, and the two results drawn from it (§4.4).
+
+    The table is Table 6 in the published numbering (Table 4 in revision 2).
+    """
     published = {           # mean W, idle W, active W, inferences/h, J/inference
         "A": (7.776, 2.414, 7.776, 8561, 3.270),
         "B": (7.314, 2.172, 8.600, 6856, 3.841),
@@ -159,15 +163,23 @@ def verify_table4():
         inf_h = DUTY[cfg] * 3600.0 / (med_ms / 1000.0)
         j_inf = mean * 3600.0 / inf_h
 
-        check(f"Table 4 {cfg} mean W", round(mean, 3), p_mean, 0.001)
-        check(f"Table 4 {cfg} idle W", round(idle, 3), p_idle, 0.001)
-        check(f"Table 4 {cfg} active W", round(active, 3), p_act, 0.001)
-        check(f"Table 4 {cfg} inferences/h", round(inf_h), p_inf, 1)
-        check(f"Table 4 {cfg} J/inference", round(j_inf, 3), p_j, 0.001)
-        check(f"Table 4 {cfg} sample count", len(rows), (5445, 5446))
-        check(f"Table 4 {cfg} run length (h)", round(clock_seconds(rows) / 3600, 2),
+        check(f"Table 6 {cfg} mean W", round(mean, 3), p_mean, 0.001)
+        check(f"Table 6 {cfg} idle W", round(idle, 3), p_idle, 0.001)
+        check(f"Table 6 {cfg} active W", round(active, 3), p_act, 0.001)
+        check(f"Table 6 {cfg} inferences/h", round(inf_h), p_inf, 1)
+        check(f"Table 6 {cfg} J/inference", round(j_inf, 3), p_j, 0.001)
+        check(f"Table 6 {cfg} sample count", len(rows), (5445, 5446))
+        check(f"Table 6 {cfg} run length (h)", round(clock_seconds(rows) / 3600, 2),
               (3.02, 3.03))
         means[cfg], energies[cfg], actives[cfg] = mean, j_inf, active
+
+        # Section 4.4 quotes the round-3 peak die temperatures. They come from
+        # the inference telemetry (*_data.csv, the same sensor as Tables 3 and
+        # 5), not from the power sampler's separate thermistor in *_power.csv.
+        # Assert them so the two sources cannot be conflated again.
+        peak = max(float(r["CPU_Temp_C"]) for r in read_csv(d) if r.get("CPU_Temp_C"))
+        check(f"§4.4 round-3 peak die temp, telemetry, {cfg} (C)",
+              peak, 84.8 if cfg == "A" else 82.6, 0.05)
 
     fall = 100 * (means["A"] - means["E"]) / means["A"]
     rise = 100 * (energies["E"] - energies["A"]) / energies["A"]
@@ -262,6 +274,8 @@ def verify_field():
     n15 = sum(1 for x in lg if 15.0 < x < 15.6)
     n20 = sum(1 for x in lg if 19.8 < x < 20.6)
     check("Section 3.3.2 long run 15.2 s pauses", n15, 100)
+    check("Section 3.3.2 whole-log 15.2 s pauses",
+          sum(1 for x in g if 15.0 < x < 15.6), 140)
 
     idx = [i for i, x in enumerate(lg) if 15.0 < x < 15.6]
     spacing = sorted(x for x in (sum(lg[idx[k]:idx[k + 1]])
@@ -278,11 +292,57 @@ def verify_field():
     check("Section 5.4 count lies between the two round B counts",
           3 < cutoffs < 41, True)
 
+    # Section 5.1 / Fig. 12 describe the gap structure of the SUBSTANTIVE SESSION.
+    # These assertions pin that scope, so the manuscript's cluster counts and the
+    # distribution emitted by analysis/c12_field_event_sensitivity.py cannot drift
+    # apart the way the whole-log/session pooling in c13 once did.
+    big = [x for x in lg if x > 1.0]
+    check("Section 5.1 session gaps > 1 s", len(big), 127)
+    check("Section 5.1 session 5 s cluster n", n5, 20)
+    check("Section 5.1 session 15 s cluster n", n15, 100)
+    check("Section 5.1 session 20 s cluster n", n20, 7)
+    check("Section 5.1 session clusters exhaust the gaps > 1 s",
+          n5 + n15 + n20, len(big))
+    c5 = [x for x in lg if 4.0 < x < 7.0]
+    c15 = [x for x in lg if 14.0 < x < 17.0]
+    c20 = [x for x in lg if 19.0 < x < 22.0]
+    check("Section 5.1 5 s cluster range (s)",
+          f"{min(c5):.2f}-{max(c5):.2f}", "5.18-5.29")
+    check("Section 5.1 15 s cluster range (s)",
+          f"{min(c15):.2f}-{max(c15):.2f}", "15.20-15.35")
+    check("Section 5.1 20 s cluster range (s)",
+          f"{min(c20):.2f}-{max(c20):.2f}", "20.20-20.26")
+    check("Section 5.1 no session gap between 5.6 s and 15.0 s",
+          sum(1 for x in lg if 5.6 < x < 15.0), 0)
+    check("Section 5.1 no session gap between 21 s and 60 s",
+          sum(1 for x in lg if 21.0 < x < 60.0), 0)
+    check("Section 5.1 floor if 20 s pauses excluded", n5, 20)
+
     lat = [float(r["Latency_ms"]) for r in rows if r.get("Latency_ms")]
     med, dropped = tukey_median(lat)
     check("Section 5.1 latency samples excluded", dropped, 337)
     check("Section 5.1 samples retained", len(lat) - dropped, 46238)
     check("Section 5.1 median latency (ms)", round(med, 1), 177.8, 0.05)
+
+    # ---- Section 4.3, camera-interface comparison -----------------------
+    # These are the figures analysis/c13_camera_interface.py reports, and they
+    # are computed on the substantive session, not on the pooled log. They are
+    # asserted here because an earlier version of that script pooled all five
+    # logging runs, which diluted the throttling fraction from 91.2% to 66.2%
+    # and moved the mean die temperature and the median latency with it.
+    sub_cpu = [float(r["CPU_Usage_%"]) for r in sub if r.get("CPU_Usage_%")]
+    sub_temp = [float(r["CPU_Temp_C"]) for r in sub if r.get("CPU_Temp_C")]
+    sub_lat = [float(r["Latency_ms"]) for r in sub if r.get("Latency_ms")]
+    sub_med, _ = tukey_median(sub_lat)
+    check("Section 4.3 field session mean CPU (%)",
+          round(sum(sub_cpu) / len(sub_cpu), 1), 95.1, 0.05)
+    check("Section 4.3 field session mean die temp (C)",
+          round(sum(sub_temp) / len(sub_temp), 1), 77.0, 0.05)
+    check("Section 4.3 field session median latency (ms)",
+          round(sub_med, 1), 173.0, 0.05)
+    check("Section 4.3 field session is not the pooled log",
+          round(100 * sum(1 for r in rows if r["Throttled"] == "Yes") / len(rows), 1),
+          66.2, 0.05)
 
 
 def main():
