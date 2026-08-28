@@ -134,6 +134,12 @@ def main():
     out["paired_comparisons_map5095"] = [
         paired_block("YOLOv11s", "YOLOv8s", MAP5095, shared),
         paired_block("RT-DETR-l", "YOLOv8s", MAP5095, shared),
+        # The third pairing was omitted from earlier versions of this script.
+        # It matters: its parametric p is 0.009, smaller than the 0.030 the
+        # manuscript had described as the only parametric p below 0.05. Leaving
+        # a comparison out made a claim about the set look stronger than the
+        # set supports, which is the failure mode this paper is about.
+        paired_block("RT-DETR-l", "YOLOv11s", MAP5095, shared),
     ]
 
     # ------------------------------------------------ uncertainty contrast ---

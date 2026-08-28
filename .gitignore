@@ -14,3 +14,9 @@ zenodo_upload/
 _release_inventory/
 _backup_before_update/
 repo-git/
+
+config/_tmp_abs.yaml
+S3_S4_output/
+runs/
+fill_S3_S4.py
+checkpoint_metadata_backup.csv

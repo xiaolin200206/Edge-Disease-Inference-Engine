@@ -72,9 +72,18 @@ def main():
     ap.add_argument("--dry-run", action="store_true")
     a = ap.parse_args()
 
+    # The directory name is not always the label the paper uses. These two
+    # groups predate the revision-2 naming and are referred to by their older
+    # labels in Table 1, Table 2, the Zenodo archive's weights/ folder and
+    # Supplementary Table S4, so the mapping is pinned rather than derived.
+    LABEL = {"seed0": "v8s_seed0", "seed1": "v8s_seed1", "seed2": "v8s_seed2",
+             "seed3": "v8s_seed3", "seed4": "v8s_seed4",
+             "yolov11s_wholeleaf_v1": "first_release_v11s_wholeleaf"}
+
     targets = []
     for p in sorted(Path(a.runs).rglob("weights/best.pt")):
-        targets.append((p, p.parent.parent.name))
+        d = p.parent.parent.name
+        targets.append((p, LABEL.get(d, d)))
     for spec in a.extra:
         path, _, label = spec.partition("=")
         targets.append((Path(path), label or Path(path).parent.parent.name))
@@ -94,7 +103,7 @@ def main():
             continue
         rows.append({
             "run": label,
-            "group": "first release" if "first_release" in label else "revision",
+            "group": "first release" if label.startswith("first_release") else "revision",
             "source": str(p.parent.parent),
             "files": "args.yaml results.csv",
             **info,

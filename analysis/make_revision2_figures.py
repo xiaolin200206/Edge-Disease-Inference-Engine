@@ -205,7 +205,7 @@ def fig_power_boundary(out):
         ax.text(76, y - 2.4, note, fontsize=7.0, ha="center", color=MUT)
 
     ax.text(50, 12,
-            "Table 4 reports SoC power and SoC energy per inference.\n"
+            "Table 6 reports SoC power and SoC energy per inference.\n"
             "EXT5V is logged as a supply-stability check and is not summed; BATT is not logged.\n"
             "Battery-rail instrumentation, and therefore system-level energy, remains future work.",
             fontsize=7.8, ha="center", va="center", color=INK)
@@ -245,11 +245,11 @@ def fig_field_gaps(repo, out):
     ax.set_xlabel("Inter-sample gap (s)")
     ax.set_ylabel("Count (log scale)")
     ax.set_title("(a) Pause structure, 2.25 h field session", loc="left")
-    ax.text(5.2, 400, "5.2–5.3 s\ncut-off retry\nn = 20", ha="center", va="top",
+    ax.text(5.2, 400, "5.18–5.29 s\ncut-off retry\nn = 20", ha="center", va="top",
             fontsize=7.6, color="#2166ac")
-    ax.text(11.6, 2400, "15.2–15.4 s\nscheduled sleep, n = 100", ha="center",
+    ax.text(11.6, 2400, "15.20–15.35 s\nscheduled sleep, n = 100", ha="center",
             va="top", fontsize=7.6, color=MUT)
-    ax.text(21.4, 400, "20.2–20.3 s\nretry merged\nwith sleep\nn = 7", ha="right",
+    ax.text(21.4, 400, "20.20–20.26 s\nretry merged\nwith sleep\nn = 7", ha="right",
             va="top", fontsize=7.6, color=ACC)
     ax.text(9.0, 1.1, "no gap of any length between 5.6 s and 15.0 s",
             ha="center", fontsize=7.4, color=INK, style="italic")

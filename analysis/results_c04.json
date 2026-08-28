@@ -182,6 +182,34 @@
       "min_attainable_two_sided_p": 0.25,
       "cohen_dz": 3.269,
       "minimum_detectable_difference_alpha05": 0.0504
+    },
+    {
+      "pair": "RT-DETR-l - YOLOv11s",
+      "seeds": [
+        0,
+        1,
+        2
+      ],
+      "per_seed_difference": [
+        0.0571,
+        0.0749,
+        0.0574
+      ],
+      "mean_difference": 0.0631,
+      "sd_difference": 0.0102,
+      "ci95_difference": [
+        0.0378,
+        0.0885
+      ],
+      "paired_t": 10.73,
+      "p_paired_t": 0.0086,
+      "wilcoxon_W": 0.0,
+      "p_wilcoxon_exact": 0.25,
+      "p_exact_sign_flip": 0.25,
+      "n_permutations": 8,
+      "min_attainable_two_sided_p": 0.25,
+      "cohen_dz": 6.195,
+      "minimum_detectable_difference_alpha05": 0.0253
     }
   ],
   "uncertainty_decomposition": {
